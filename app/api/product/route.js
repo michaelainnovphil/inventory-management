@@ -12,7 +12,7 @@ export async function GET(request) {
 
   try {
     await connectToMongo();
-    const products = await Product.find({ user: request.user.id });
+    const products = await Product.find(); // No filter – returns everything
 
     return NextResponse.json({
       success: true,
