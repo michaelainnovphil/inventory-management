@@ -5,12 +5,9 @@ import { MdDelete } from "react-icons/md";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { Bar, Pie } from "react-chartjs-2";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import React from "react";
-import * as XLSX from "xlsx";
+import * as XLSX from "xlsx-js-style";
 import { saveAs } from "file-saver";
-
-
 
 import {
   Chart as ChartJS,
@@ -33,13 +30,9 @@ ChartJS.register(
   ArcElement
 );
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-
-
 export default function Dashboard() {
   const [productForm, setProductForm] = useState({});
   const [products, setProducts] = useState([]);
-
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingDelAction, setLoadingDelAction] = useState(false);
@@ -51,27 +44,95 @@ export default function Dashboard() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [groupByIssuedTo, setGroupByIssuedTo] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-const [editingProductId, setEditingProductId] = useState(null);
-
-
-
+  const [editingProductId, setEditingProductId] = useState(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [highlightedRowId, setHighlightedRowId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+const [productToDelete, setProductToDelete] = useState(null);
 
 
   const router = useRouter();
+  const productRefs = React.useRef({});
 
-   const exportToExcel = () => {
-    if (!products || products.length === 0) {
-      toast.warn("No products to export");
-      return;
-    }
+const scrollToAndHighlight = (slug) => {
+  const row = productRefs.current[slug];
+  if (row) {
+    row.scrollIntoView({ behavior: "smooth", block: "center" });
+    row.classList.add("bg-orange-300");
 
-    const worksheet = XLSX.utils.json_to_sheet(products);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
-    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
-    saveAs(blob, "products.xlsx");
-  };
+    setTimeout(() => {
+      row.classList.remove("bg-orange-300");
+    }, 3000); // Highlight for 3 seconds
+  }
+};
+
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const exportToExcel = () => {
+  if (!products || products.length === 0) {
+    toast.warn("No products to export");
+    return;
+  }
+
+  const formattedProducts = products.map((product) => ({
+    ...product,
+    issued: Array.isArray(product.issued) ? product.issued.join(", ") : product.issued || "",
+  }));
+
+  // Capitalize the first letter of each key for headers
+  const headers = Object.keys(formattedProducts[0]).map((key) =>
+    key.charAt(0).toUpperCase() + key.slice(1)
+  );
+
+  const worksheet = XLSX.utils.json_to_sheet([]);
+  XLSX.utils.sheet_add_aoa(worksheet, [headers], { origin: "A1" });
+  XLSX.utils.sheet_add_json(worksheet, formattedProducts, {
+    origin: "A2",
+    skipHeader: true,
+  });
+
+  // Style header row (row 1)
+  headers.forEach((_, index) => {
+    const cellRef = XLSX.utils.encode_cell({ c: index, r: 0 });
+    if (!worksheet[cellRef]) return;
+
+    worksheet[cellRef].s = {
+      fill: {
+        patternType: "solid",
+        fgColor: { rgb: "0070C0" }, // blue background
+      },
+      font: {
+        color: { rgb: "FFFFFF" }, // white text
+        bold: true,
+      },
+    };
+  });
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+
+  const excelBuffer = XLSX.write(workbook, {
+    bookType: "xlsx",
+    type: "array",
+    cellStyles: true,
+  });
+
+  const blob = new Blob([excelBuffer], {
+    type: "application/octet-stream",
+  });
+
+  saveAs(blob, "products.xlsx");
+};
+
+
 
   const buttonAction = async (action, slug, initialQuantity) => {
     // Immediately change the quantity of the product with given slug in Products(only frontend)
@@ -150,6 +211,7 @@ const [editingProductId, setEditingProductId] = useState(null);
         category: "",
         branch: "",
         issued: "",
+        status: "",
       });
       setIsEditing(false);
       setEditingProductId(null);
@@ -181,59 +243,57 @@ const [editingProductId, setEditingProductId] = useState(null);
   };
 
   const onDropdownEdit = async (e) => {
-    let value = e.target.value;
-    setQuery(value);
-    if (value.length > 3) {
-      setSearch(true);
-      setLoading(true);
-      setDropdown([]);
-      const response = await fetch("/api/search?query=" + query, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "auth-token": localStorage.getItem("token"),
-        },
-      });
-      let rjson = await response.json();
-      setDropdown(rjson.products);
-      setLoading(false);
-    } else {
-      setSearch(false);
-      setDropdown([]);
-    }
-  };
+  let value = e.target.value;
+  setQuery(value); // you can keep this for display/debug
+
+  if (value.length > 3) {
+    setSearch(true);
+    setLoading(true);
+    setDropdown([]);
+    const response = await fetch("/api/search?query=" + value, { // <-- use value here
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "auth-token": localStorage.getItem("token"),
+      },
+    });
+    let rjson = await response.json();
+    setDropdown(rjson.products);
+    setLoading(false);
+  } else {
+    setSearch(false);
+    setDropdown([]);
+  }
+};
+
 
   // ---------------DELETE FUNCTION----------------
   const handleDeleteProduct = async (id) => {
-    const ID = id;
-    try {
-      const response = await fetch("/api/product", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "auth-token": localStorage.getItem("token"),
-        },
-        body: JSON.stringify(ID),
-      });
-      let rjson = await response.json();
 
-      if (rjson.success === true) {
-        toast.success("Succesfully Deleted");
-        setLoadingDelAction(!loadingDelAction);
-        router.refresh;
-      } else {
-        toast.error(rjson.message ?? "Something went wrong");
-      }
-    } catch (error) {
-      toast.error(
-        error instanceof Object && error.message
-          ? error.message
-          : error
-          ? error
-          : "Something went wrong!"
-      );
+
+  try {
+    const response = await fetch("/api/product", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "auth-token": localStorage.getItem("token"),
+      },
+      body: JSON.stringify(id),
+    });
+
+    const rjson = await response.json();
+
+    if (rjson.success === true) {
+      toast.success("Successfully Deleted");
+      setLoadingDelAction(!loadingDelAction);
+    } else {
+      toast.error(rjson.message ?? "Something went wrong");
     }
-  };
+  } catch (error) {
+    toast.error(error?.message || "Something went wrong!");
+  }
+};
+
 
 const openProductModal = (product) => {
   setSelectedProduct(product);
@@ -254,6 +314,7 @@ const handleModalEdit = () => {
     issued: Array.isArray(selectedProduct.issued)
       ? selectedProduct.issued.join(", ")
       : selectedProduct.issued || "",
+    status: selectedProduct.status || "",
   });
 
   setShowModal(false);
@@ -306,33 +367,53 @@ const branchQuantities = products.reduce((acc, product) => {
   return acc;
 }, {});
 
-const barChartData = {
-  labels: Object.keys(branchQuantities),
-  datasets: [
-    {
-      label: "Total Quantity",
-      data: Object.values(branchQuantities),
-      backgroundColor: [
-        "#001a70", // blue
-        "#ff6510", // orange
-        "#f22f50", // red
-        "#1aa6b7", // green
-      ],
-    },
+const branchLabels = Object.keys(branchQuantities);
+const branchData = Object.entries(branchQuantities).map(([branch, quantity], i) => ({
+  label: branch,
+  data: [quantity],
+  backgroundColor: [
+    ["#001a70", "#ff6510", "#f22f50", "#1aa6b7"][i % 4] // cycle through 4 colors
   ],
+}));
+
+const barChartData = {
+  labels: ["Total Inventory per Branch"], // one grouped bar
+  datasets: branchData,
 };
 
+
 const barChartOptions = {
-  indexAxis: "y", // This makes it horizontal
+  indexAxis: "y", // horizontal
   responsive: true,
   plugins: {
-    legend: { position: "top" },
+    legend: {
+      display: true,  // 👈 force show legend
+      position: "top",
+      labels: {
+        color: "#333",
+        font: {
+          size: 14,
+          weight: "bold"
+        }
+      }
+    },
     title: {
       display: true,
-      text: "Inventory Quantity by Branch",
-    },
-  },
+      text: "",
+      font: {
+        size: 18,
+        weight: "bold"
+      }
+    }
+  }
 };
+
+
+const totalInventory = products.reduce(
+  (sum, product) => sum + (product.quantity || 0),
+  0
+);
+
 
 // Compute total quantity per category for pie chart
 const categoryQuantities = products.reduce((acc, product) => {
@@ -372,157 +453,165 @@ const pieChartData = {
       
       {/* Display Current Stock  */}
       <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] grid-rows-[auto_1fr] gap-4 w-full">
-        <div className="container mx-auto shadow-md rounded-md p-3 my-8 w-11/12 ">
-          <h1 className="text-3xl font-semibold mb-6">Add a Product</h1>
-          <form onSubmit={addProduct}>
-            <div className="mb-4">
-              <label htmlFor="code" className="block mb-2">
-                Product ID
-              </label>
-              <input
-                value={productForm?.code || ""}
-                name="code"
-                onChange={handleChange}
-                type="text"
-                id="code"
-                className="w-full border border-gray-300 px-4 py-2"
-              />
-            </div>
-            <div className="mb-4">
-              <label htmlFor="productName" className="block mb-2">
-                Asset Name
-              </label>
-              <input
-                value={productForm?.slug || ""}
-                name="slug"
-                onChange={handleChange}
-                type="text"
-                id="productName"
-                className="w-full border border-gray-300 px-4 py-2"
-              />
-            </div>
-            <div className="mb-4">
-              <label htmlFor="productName" className="block mb-2">
-                Serial Number
-              </label>
-              <input
-                value={productForm?.serial || ""}
-                name="serial"
-                onChange={handleChange}
-                type="text"
-                id="productSerial"
-                className="w-full border border-gray-300 px-4 py-2"
-              />
-            </div>
+  <div className="container mx-auto shadow-md rounded-md p-3 my-8 w-11/12 bg-white">
+    <h1 className="text-3xl font-semibold mb-6 text-gray-800">Add a Product</h1>
+    <form onSubmit={addProduct} className="space-y-4">
+      <div>
+        <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">Product ID</label>
+        <input
+          value={productForm?.code || ""}
+          name="code"
+          onChange={handleChange}
+          type="text"
+          id="code"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
+        />
+      </div>
 
-            <div className="mb-4">
-              <label htmlFor="quantity" className="block mb-2">
-                Quantity
-              </label>
-              <input
-                value={productForm?.quantity || ""}
-                name="quantity"
-                onChange={handleChange}
-                type="number"
-                id="quantity"
-                className="w-full border border-gray-300 px-4 py-2"
-              />
-            </div>
+      <div>
+        <label htmlFor="productName" className="block text-sm font-medium text-gray-700 mb-1">Asset Name</label>
+        <input
+          value={productForm?.slug || ""}
+          name="slug"
+          onChange={handleChange}
+          type="text"
+          id="productName"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
+        />
+      </div>
 
-            <div className="mb-4">
-              <label htmlFor="price" className="block mb-2">
-                Price
-              </label>
-              <input
-                value={productForm?.price || ""}
-                name="price"
-                onChange={handleChange}
-                type="number"
-                id="price"
-                className="w-full border border-gray-300 px-4 py-2"
-              />
-            </div>
+      <div>
+        <label htmlFor="productSerial" className="block text-sm font-medium text-gray-700 mb-1">Serial Number</label>
+        <input
+          value={productForm?.serial || ""}
+          name="serial"
+          onChange={handleChange}
+          type="text"
+          id="productSerial"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
+        />
+      </div>
 
-            <div className="mb-4">
-              <label htmlFor="category" className="block mb-2">
-                Category
-              </label>
-              <select
-                id="category"
-                name="category"
-                value={productForm?.category || ""}
-                onChange={handleChange}
-                className="w-full border border-gray-300 px-4 py-2"
-              >
-                <option value="">Select Category</option>
-                <option value="IT Equipment">IT Equipment</option>
-                <option value="Furniture and Fixtures">Furniture and Fixtures</option>
-                <option value="Office Supplies">Office Supplies</option>
-                <option value="AHA Training">AHA Training Equipment</option>
-                <option value="Appliances">Appliances</option>
-                <option value="Reviewer Handbook">Reviewer Handbook</option>
-                <option value="Freebies/Souvenirs">Freebies/Souvenirs</option>
-                <option value="Others">Others</option>
-              </select>
-            </div>
+      <div>
+        <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+        <input
+          value={productForm?.quantity || ""}
+          name="quantity"
+          onChange={handleChange}
+          type="number"
+          id="quantity"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
+        />
+      </div>
 
-            <div className="mb-4">
-              <label htmlFor="branch" className="block mb-2">
-                Branch
-              </label>
-              <select
-                id="branch"
-                name="branch"
-                value={productForm?.branch || ""}
-                onChange={handleChange}
-                className="w-full border border-gray-300 px-4 py-2"
-              >
-                <option value="">Select Branch</option>
-                <option value="Makati">Makati</option>
-                <option value="Naga">Naga</option>
-                <option value="Both">Both</option>
-              </select>
-            </div>
+      <div>
+        <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+        <input
+          value={productForm?.price || ""}
+          name="price"
+          onChange={handleChange}
+          type="number"
+          id="price"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
+        />
+      </div>
 
+      <div>
+        <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+        <select
+          id="category"
+          name="category"
+          value={productForm?.category || ""}
+          onChange={handleChange}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-primary focus:border-primary"
+        >
+          <option value="">Select Category</option>
+          <option value="IT Equipment">IT Equipment</option>
+          <option value="Furniture and Fixtures">Furniture and Fixtures</option>
+          <option value="Office Supplies">Office Supplies</option>
+          <option value="AHA Training">AHA Training Equipment</option>
+          <option value="Appliances">Appliances</option>
+          <option value="Reviewer Handbook">Reviewer Handbook</option>
+          <option value="Freebies/Souvenirs">Freebies/Souvenirs</option>
+          <option value="Others">Others</option>
 
-            <div className="mb-4">
-              <label htmlFor="issued" className="block mb-2">
-                Issued to
-              </label>
-              <input
-                value={productForm?.issued || ""}
-                name="issued"
-                onChange={handleChange}
-                type="text"
-                id="issued"
-                className="w-full border border-gray-300 px-4 py-2"
-              />
-            </div>
+        </select>
+      </div>
 
-            <button
-              type="submit"
-              className="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg shadow-md font-semibold"
-            >
-              Add Product
-            </button>
-          </form>
-        </div>
+      <div>
+        <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
+        <select
+          id="branch"
+          name="branch"
+          value={productForm?.branch || ""}
+          onChange={handleChange}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-primary focus:border-primary"
+        >
+          <option value="">Select Branch</option>
+          <option value="Makati">Makati</option>
+          <option value="Naga">Naga</option>
+          <option value="Both">Both</option>
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="issued" className="block text-sm font-medium text-gray-700 mb-1">Issued to</label>
+        <input
+          value={productForm?.issued || ""}
+          name="issued"
+          onChange={handleChange}
+          type="text"
+          id="issued"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+        <select
+          id="status"
+          name="status"
+          value={productForm?.status || ""}
+          onChange={handleChange}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-primary focus:border-primary"
+        >
+          <option value="">Select Status</option>
+          <option value="Deployed/In Use">Deployed/In Use</option>
+          <option value="Spare">Spare</option>
+          <option value="Defective">Defective</option>
+        </select>
+      </div>
+
+      <button
+        type="submit"
+        className="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg shadow-md font-semibold transition"
+      >
+        {isEditing ? "Update Product" : "Add Product"}
+      </button>
+    </form>
+  </div>
+
         
         <div className="w-full">
-          <div className="bg-white container mx-auto shadow-md rounded-md p-3 my-8 w-11/12">
-            <h2 className="text-xl font-bold mb-4">Inventory Overview</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white container mx-auto shadow-lg rounded-xl p-6 my-8 w-full">
+  <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">📊 Inventory Overview</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Bar Graph */}
-              <div className="bg-gray-100 p-3 rounded">
-                <h3 className="font-semibold mb-2">Inventory by Branch</h3>
+              <div className="bg-white border rounded-lg shadow-md p-4">
+      <h3 className="font-semibold text-lg mb-3 text-primary">📍 Inventory by Branch</h3>
+      
                 {/* Insert horizontal bar chart here */}
                 <Bar data={barChartData} options={barChartOptions} />
+                <div className="mt-4 text-right font-bold text-xl text-gray-800">
+                Overall Total Inventory: {totalInventory}
+              </div>
 
               </div>
 
               {/* Pie Graph */}
-              <div className="bg-gray-100 p-3 rounded">
-                <h3 className="font-semibold mb-2">Assets by Category</h3>
+              <div className="bg-white border rounded-lg shadow-md p-4">
+      <h3 className="font-semibold text-lg mb-3 text-primary">🗂️ Assets by Category</h3>
                 {/* Insert pie chart here */}
                 <Pie data={pieChartData} />
               </div>
@@ -534,18 +623,20 @@ const pieChartData = {
 
         <div className="w-full col-span-1 md:col-span-2">
           <div className="container mx-auto w-full md:w-1/2  my-8  px-3 md:px-0">
-        <h1 className=" md:text-3xl font-semibold mb-6">Search a Product</h1>
-        <div className="flex mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold mb-4 text-gray-800">Search a Product</h1>
+        <div className="flex rounded-lg shadow-sm overflow-hidden ring-1 ring-gray-300 focus-within:ring-2 focus-within:ring-primary mb-4">
+
           <input
             onChange={onDropdownEdit}
             type="text"
             placeholder="Enter a product name"
-            className="flex-1 border border-gray-300 px-2 md:px-4 py-2 rounded-l-md"
+               className="flex-1 px-4 py-2 text-sm md:text-base bg-white text-gray-700 focus:outline-none"
+
           />
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="border border-gray-300 px-1 md:px-4 py-2 rounded-r-md"
+    className="bg-gray-100 border-l border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base text-gray-700 focus:outline-none"
           >
             <option value="">All</option>
             <option value="IT Equipment">IT Equipment</option>
@@ -564,51 +655,25 @@ const pieChartData = {
             <p>loading...</p>
           </div>
         )}
-        <div className="dropcontainer absolute w-11/12 md:w-1/2 border-1 bg-green-100 rounded-md ">
+<div className="dropcontainer absolute z-40 w-11/12 md:w-1/2 bg-white border border-gray-200 shadow-lg rounded-lg mt-2 overflow-y-auto max-h-60">
+
           {search &&
             (dropdown.length > 0 ? (
               dropdown.map((item) => {
                 return (
                   <div
-                    key={item.slug}
-                    className="container flex flex-col sm:flex-row justify-between p-2 my-1 border-b-2"
-                  >
-                    <span className="slug text-sm md:text-base">
-                      {" "}
-                      {item.slug} ({item.quantity} available for ₱
-                      {item.price * item.quantity})
-                    </span>
-                    <div className="mx-5">
-                      <button
-                        onClick={() => {
-                          buttonAction("minus", item.slug, item.quantity);
-                        }}
-                        disabled={loadingaction || item.quantity === 0}
-                        className={`subtract inline-block px-3 py-1 ${
-                          item.quantity === 0
-                            ? "cursor-not-allowed"
-                            : "cursor-pointer"
-                        } bg-green-500 text-white font-semibold rounded-lg shadow-md disabled:bg-green-200`}
-                      >
-                        {" "}
-                        -{" "}
-                      </button>
-
-                      <span className="quantity inline-block  min-w-3 mx-3">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() => {
-                          buttonAction("plus", item.slug, item.quantity);
-                        }}
-                        disabled={loadingaction}
-                        className="add inline-block px-3 py-1 cursor-pointer bg-green-500 text-white font-semibold rounded-lg shadow-md disabled:bg-green-200"
-                      >
-                        {" "}
-                        +{" "}
-                      </button>
-                    </div>
-                  </div>
+            key={item.slug}
+            onClick={() => scrollToAndHighlight(item.slug)}
+  className="cursor-pointer px-4 py-2 border-b hover:bg-primary/10 transition-colors"
+          >
+  <div className="font-semibold text-gray-800 text-sm md:text-base">
+              {item.slug} ({item.quantity} pcs) – ₱{item.price * item.quantity}
+            </div>
+  <div className="text-xs text-gray-500">
+              ID: {item.code} | Issued To:{" "}
+              {Array.isArray(item.issued) ? item.issued.join(", ") : item.issued || "N/A"}
+            </div>
+          </div>
                 );
               })
             ) : (
@@ -616,155 +681,170 @@ const pieChartData = {
             ))}
         </div>
       </div>
-<div className="flex justify-end pr-4">
-        <button
-          onClick={exportToExcel}
-          className="bg-green-600 text-white px-4 py-2 rounded mb-4"
-        >
-          Export to Excel
-        </button>
-      </div>
-
-
-      <div className="flex items-center gap-2 mb-4">
-  <label htmlFor="groupToggle" className="font-medium">Group by Issued To</label>
-  <input
-    type="checkbox"
-    id="groupToggle"
-    checked={groupByIssuedTo}
-    onChange={(e) => setGroupByIssuedTo(e.target.checked)}
-    className="w-5 h-5 accent-blue-600"
-  />
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-4 mb-4">
+  <div className="flex items-center gap-2">
+    <label htmlFor="groupToggle" className="font-medium text-gray-800">Group by Issued To</label>
+    <input
+      type="checkbox"
+      id="groupToggle"
+      checked={groupByIssuedTo}
+      onChange={(e) => setGroupByIssuedTo(e.target.checked)}
+      className="w-5 h-5 accent-blue-600"
+    />
+  </div>
+  <button
+    onClick={exportToExcel}
+    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow-sm transition"
+  >
+    Export to Excel
+  </button>
 </div>
 
 
 
 
 
+        <div className="overflow-x-auto bg-white rounded-lg shadow-md p-4">
 
-          <h1 className="text-3xl font-semibold mb-6">Inventory Database</h1>
           
-          <table className="table-auto w-full font-semibold text-sm md:font:bold md:text-base">
-            <thead>
-              <tr>
-                <th className="md:px-4 py-2">Product ID</th>
-                <th className="md:px-4 py-2">Asset Name</th>
-                <th className="md:px-4 py-2">Serial Number</th>
-                <th className="md:px-4 py-2">Category</th>
-                <th className="md:px-4 py-2">Branch</th>
-                <th className="md:px-4 py-2">Issued to</th>
-                <th className="md:px-4 py-2">Quantity</th>
-                <th className="md:px-4 py-2">Unit Price</th>
-                <th className="md:px-4 py-2">Total Price</th>
-                <th className="md:px-4 py-2">Delete</th>
-              </tr>
-            </thead>
-            <tbody>
-  {groupByIssuedTo ? (
-  Object.entries(
-    products
-      .filter((product) => {
-        if (selectedCategory === "") return true;
-        return product.category === selectedCategory;
-      })
-      .reduce((acc, product) => {
-        const issuedList = Array.isArray(product.issued) ? product.issued : [product.issued || "Unassigned"];
-        issuedList.forEach((person) => {
-          if (!acc[person]) acc[person] = [];
-          acc[person].push(product);
-        });
-        return acc;
-      }, {})
-  ).map(([issuedTo, group]) => (
-    <React.Fragment key={issuedTo}>
-      <tr style={{ backgroundColor: "#001a70", color: "white" }}>
-        <td colSpan="10" className="px-4 py-2 font-semibold">{issuedTo}</td>
-      </tr>
-      {group.map((product) => (
-        <tr
-          key={product._id || product.code}
-          onClick={() => openProductModal(product)}
-          className="cursor-pointer hover:bg-blue-100 transition"
-        >
-          <td className="border px-4 py-2">{product.code || "—"}</td>
-          <td className="border px-4 py-2">{product.slug || "—"}</td>
-          <td className="border px-4 py-2">{product.serial || "—"}</td>
-          <td className="border px-4 py-2">{product.category || "—"}</td>
-          <td className="border px-4 py-2">{product.branch || "—"}</td>
-          <td className="border px-4 py-2">
-            {Array.isArray(product.issued) ? product.issued.join(", ") : product.issued || "—"}
-          </td>
-          <td className="border px-4 py-2">{product.quantity || 0}</td>
-          <td className="border px-4 py-2">₱{product.price || 0}</td>
-          <td className="border px-4 py-2">
-            ₱{(product.price || 0) * (product.quantity || 0)}
-          </td>
-          <td
-            onClick={() => handleDeleteProduct(product._id)}
-            className="border cursor-pointer flex justify-center items-center text-2xl py-2 text-red-600"
+            <table className="min-w-full table-auto border border-gray-200 rounded-lg text-sm md:text-base shadow-sm">
+  <thead className="bg-primary text-white text-left">
+    <tr>
+      <th className="px-4 py-3 font-semibold">Product ID</th>
+      <th className="px-4 py-3 font-semibold">Asset Name</th>
+      <th className="px-4 py-3 font-semibold">Serial Number</th>
+      <th className="px-4 py-3 font-semibold">Category</th>
+      <th className="px-4 py-3 font-semibold">Branch</th>
+      <th className="px-4 py-3 font-semibold">Issued to</th>
+      <th className="px-4 py-3 font-semibold">Status</th>
+      <th className="px-4 py-3 font-semibold text-center">Qty</th>
+      <th className="px-4 py-3 font-semibold text-right">Unit Price</th>
+      <th className="px-4 py-3 font-semibold text-right">Total Price</th>
+      <th className="px-4 py-3 font-semibold text-center">Action</th>
+    </tr>
+  </thead>
+
+  <tbody className="divide-y divide-gray-100">
+    {groupByIssuedTo ? (
+      Object.entries(
+        products
+          .filter((product) =>
+            selectedCategory ? product.category === selectedCategory : true
+          )
+          .reduce((acc, product) => {
+            const issuedList = Array.isArray(product.issued)
+              ? product.issued
+              : [product.issued || "Unassigned"];
+            issuedList.forEach((person) => {
+              if (!acc[person]) acc[person] = [];
+              acc[person].push(product);
+            });
+            return acc;
+          }, {})
+      ).map(([issuedTo, group]) => (
+        <React.Fragment key={issuedTo}>
+          <tr className="bg-orange-500 text-white">
+            <td colSpan="10" className="px-4 py-2 font-semibold">
+              {issuedTo}
+            </td>
+          </tr>
+          {group.map((product) => (
+            <tr
+              ref={(el) => (productRefs.current[product.slug] = el)}
+              key={product._id || product.code}
+              onClick={() => openProductModal(product)}
+              className="even:bg-gray-50 hover:bg-blue-50 transition cursor-pointer"
+            >
+              <td className="px-4 py-2">{product.code || "—"}</td>
+              <td className="px-4 py-2">{product.slug || "—"}</td>
+              <td className="px-4 py-2">{product.serial || "—"}</td>
+              <td className="px-4 py-2">{product.category || "—"}</td>
+              <td className="px-4 py-2">{product.branch || "—"}</td>
+              <td className="px-4 py-2">
+                {Array.isArray(product.issued)
+                  ? product.issued.join(", ")
+                  : product.issued || "—"}
+              </td>
+              <td className="px-4 py-2 text-center">{product.status || "—"}</td>
+              <td className="px-4 py-2 text-center">{product.quantity || 0}</td>
+              <td className="px-4 py-2 text-right">₱{product.price || 0}</td>
+              <td className="px-4 py-2 text-right">
+                ₱{(product.price || 0) * (product.quantity || 0)}
+              </td>
+              <td className="px-4 py-2 text-center text-red-600 text-2xl">
+                <MdDelete
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setProductToDelete(product);
+                    setShowDeleteModal(true);
+                  }}
+                  className="cursor-pointer"
+                />
+              </td>
+            </tr>
+          ))}
+        </React.Fragment>
+      ))
+    ) : (
+      products
+        .filter((product) =>
+          selectedCategory ? product.category === selectedCategory : true
+        )
+        .sort((a, b) => {
+          const catA = a.category?.toLowerCase() || "";
+          const catB = b.category?.toLowerCase() || "";
+          const codeA = a.code?.toLowerCase() || "";
+          const codeB = b.code?.toLowerCase() || "";
+
+          if (catA < catB) return -1;
+          if (catA > catB) return 1;
+          return codeA.localeCompare(codeB);
+        })
+        .map((product) => (
+          <tr
+            ref={(el) => (productRefs.current[product.slug] = el)}
+            key={product._id || product.code}
+            onClick={() => openProductModal(product)}
+            className="hover:bg-blue-50 transition cursor-pointer"
           >
-            <MdDelete />
-          </td>
-        </tr>
-      ))}
-    </React.Fragment>
-  ))
-) : (
-  products
-    .filter((product) => {
-      if (selectedCategory === "") return true;
-      return product.category === selectedCategory;
-    })
-    .sort((a, b) => {
-  const catA = a.category?.toLowerCase() || "";
-  const catB = b.category?.toLowerCase() || "";
-  const codeA = a.code?.toLowerCase() || "";
-  const codeB = b.code?.toLowerCase() || "";
+            <td className="px-4 py-2">{product.code || "—"}</td>
+            <td className="px-4 py-2">{product.slug || "—"}</td>
+            <td className="px-4 py-2">{product.serial || "—"}</td>
+            <td className="px-4 py-2">{product.category || "—"}</td>
+            <td className="px-4 py-2">{product.branch || "—"}</td>
+            <td className="px-4 py-2">
+              {Array.isArray(product.issued)
+                ? product.issued.join(", ")
+                : product.issued || "—"}
+            </td>
+            <td className="px-4 py-2 text-center">{product.status || "—"}</td>
+            <td className="px-4 py-2 text-center">{product.quantity || 0}</td>
+            <td className="px-4 py-2 text-right">₱{product.price || 0}</td>
+            <td className="px-4 py-2 text-right">
+              ₱{(product.price || 0) * (product.quantity || 0)}
+            </td>
+            <td className="px-4 py-2 text-center text-red-600 text-2xl">
+              <MdDelete
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setProductToDelete(product);
+                  setShowDeleteModal(true);
+                }}
+                className="cursor-pointer"
+              />
+            </td>
+          </tr>
+        ))
+    )}
+  </tbody>
+</table>
 
-  if (catA < catB) return -1;
-  if (catA > catB) return 1;
-  return codeA.localeCompare(codeB);
-})
-
-    .map((product) => (
-      <tr
-        key={product._id || product.code}
-        onClick={() => openProductModal(product)}
-        className="cursor-pointer hover:bg-blue-100 transition"
-      >
-        <td className="border px-4 py-2">{product.code || "—"}</td>
-        <td className="border px-4 py-2">{product.slug || "—"}</td>
-        <td className="border px-4 py-2">{product.serial || "—"}</td>
-        <td className="border px-4 py-2">{product.category || "—"}</td>
-        <td className="border px-4 py-2">{product.branch || "—"}</td>
-        <td className="border px-4 py-2">
-          {Array.isArray(product.issued) ? product.issued.join(", ") : product.issued || "—"}
-        </td>
-        <td className="border px-4 py-2">{product.quantity || 0}</td>
-        <td className="border px-4 py-2">₱{product.price || 0}</td>
-        <td className="border px-4 py-2">
-          ₱{(product.price || 0) * (product.quantity || 0)}
-        </td>
-        <td
-          onClick={() => handleDeleteProduct(product._id)}
-          className="border cursor-pointer flex justify-center items-center text-2xl py-2 text-red-600"
-        >
-          <MdDelete />
-        </td>
-      </tr>
-    ))
-)}
-
-
-</tbody>
-
-
-          </table>
+          </div>
         </div>
       </div>
       {showModal && selectedProduct && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-    <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+        <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
       <h2 className="text-xl font-bold mb-4">Product Details</h2>
       <p><strong>Product ID:</strong> {selectedProduct.code}</p>
       <p><strong>Asset Name:</strong> {selectedProduct.slug}</p>
@@ -772,6 +852,7 @@ const pieChartData = {
       <p><strong>Category:</strong> {selectedProduct.category}</p>
       <p><strong>Branch:</strong> {selectedProduct.branch}</p>
       <p><strong>Issued To:</strong> {Array.isArray(selectedProduct.issued) ? selectedProduct.issued.join(", ") : selectedProduct.issued}</p>
+      <p><strong>Status:</strong> {selectedProduct.status}</p>
       <p><strong>Quantity:</strong> {selectedProduct.quantity}</p>
       <p><strong>Price:</strong> ₱{selectedProduct.price}</p>
 
@@ -796,14 +877,52 @@ const pieChartData = {
               issued: Array.isArray(selectedProduct.issued)
                 ? selectedProduct.issued.join(", ")
                 : selectedProduct.issued,
+              status: selectedProduct.status,
             });
             setIsEditing(true); // enable edit mode
             setEditingProductId(selectedProduct._id); // store product ID
             setShowModal(false);
             window.scrollTo({ top: 0, behavior: "smooth" });
-          }}
+                }}
+              >
+                Edit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-6 right-6 z-50 bg-primary hover:bg-secondary text-white px-4 py-2 rounded-full shadow-lg"
         >
-          Edit
+          ↑ Top
+        </button>
+      )}
+
+      {showDeleteModal && productToDelete && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+      <h2 className="text-xl font-bold mb-4 text-gray-800">Confirm Delete</h2>
+      <p className="text-gray-700 mb-6">
+        Are you sure you want to delete <span className="font-semibold">{productToDelete.slug}</span>?
+      </p>
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={() => setShowDeleteModal(false)}
+          className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-gray-800"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() => {
+            handleDeleteProduct(productToDelete._id);
+            setShowDeleteModal(false);
+          }}
+          className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white"
+        >
+          Delete
         </button>
       </div>
     </div>

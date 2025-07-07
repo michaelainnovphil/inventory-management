@@ -39,6 +39,10 @@ const ProductsSchema = new Schema({
     type: [String],
     default: [],
   },
+  status: {
+    type: [String],
+    required: false,
+  },
 });
 
 ProductsSchema.plugin(mongooseUniqueValidator, {

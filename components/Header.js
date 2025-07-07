@@ -7,6 +7,7 @@ const Header = () => {
   const router = useRouter();
   const [token, setToken] = useState("");
   const [name, setName] = useState("");
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     setName("");
@@ -14,8 +15,6 @@ const Header = () => {
   };
 
   useEffect(() => {
-    // Fetch products on load
-
     const fetchUser = async () => {
       const response = await fetch("/api/user", {
         method: "GET",
@@ -34,27 +33,33 @@ const Header = () => {
     };
     fetchUser();
   }, []);
+
   return (
-    <header className="bg-white text-gray-600 body-font">
-      <div className="container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center">
-        <a className="flex title-font font-extrabold items-center text-gray-900 mb-4 md:mb-0">
-          <img src="/logo.png" alt="Logo" className="w-20 h-16" />
-          <span className="ml-3 text-xl">User - {name || ""}</span>
-        </a>
-        <nav className="md:ml-auto flex flex-wrap items-center text-base justify-center">
+    <header className="bg-gradient-to-r from-white to-white text-white shadow-md rounded-md">
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        {/* Logo and User */}
+        <div className="flex items-center gap-4">
+          <img src="/logo.png" alt="Logo" className="w-17 h-14 rounded" />
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold tracking-wide text-black">
+            Welcome, {name || "Guest"}
+          </h1>
+        </div>
+
+        {/* Nav button */}
+        <nav>
           {token ? (
             <button
               onClick={handleLogout}
-              className="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg shadow-md font-semibold"
+              className="bg-red-600 hover:bg-red-700 transition text-white px-4 py-2 rounded-md font-semibold shadow"
             >
               Logout
             </button>
           ) : (
-            <button className="bg-secondary hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow-md font-semibold">
-              <Link href="/signup" role="button">
+            <Link href="/signup">
+              <button className="bg-green-600 hover:bg-green-700 transition text-white px-4 py-2 rounded-md font-semibold shadow">
                 Signup
-              </Link>
-            </button>
+              </button>
+            </Link>
           )}
         </nav>
       </div>
