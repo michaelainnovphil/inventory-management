@@ -35,18 +35,35 @@ const Header = () => {
   }, []);
 
   return (
-    <header className="bg-gradient-to-r from-white to-white text-white shadow-md rounded-md">
+    <header className="bg-white shadow-md rounded-md">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo and User */}
         <div className="flex items-center gap-4">
           <img src="/logo.png" alt="Logo" className="w-17 h-14 rounded" />
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold tracking-wide text-black">
-            Welcome, {name || "Guest"}
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold tracking-wide text-gray-800">
+            
           </h1>
         </div>
 
-        {/* Nav button */}
-        <nav>
+        {/* Navigation */}
+        <nav className="flex items-center gap-6">
+          {token && (
+            <>
+              <Link
+                href="/dashboard"
+                className="text-gray-700 hover:text-blue-600 font-medium transition"
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/inventory"
+                className="text-gray-700 hover:text-blue-600 font-medium transition"
+              >
+                Inventory
+              </Link>
+            </>
+          )}
+
           {token ? (
             <button
               onClick={handleLogout}
@@ -56,9 +73,9 @@ const Header = () => {
             </button>
           ) : (
             <Link href="/signup">
-              <button className="bg-green-600 hover:bg-green-700 transition text-white px-4 py-2 rounded-md font-semibold shadow">
+              <span className="bg-green-600 hover:bg-green-700 transition text-white px-4 py-2 rounded-md font-semibold shadow cursor-pointer">
                 Signup
-              </button>
+              </span>
             </Link>
           )}
         </nav>

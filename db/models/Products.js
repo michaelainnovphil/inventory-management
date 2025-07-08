@@ -40,7 +40,7 @@ const ProductsSchema = new Schema({
     default: [],
   },
   status: {
-    type: [String],
+    type: String,
     required: false,
   },
 });

@@ -8,8 +8,7 @@ import { Bar, Pie } from "react-chartjs-2";
 import React from "react";
 import * as XLSX from "xlsx-js-style";
 import { saveAs } from "file-saver";
-import { Plus } from "lucide-react";
-
+import Link from "next/link";
 
 import {
   Chart as ChartJS,
@@ -51,8 +50,6 @@ export default function Dashboard() {
   const [highlightedRowId, setHighlightedRowId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 const [productToDelete, setProductToDelete] = useState(null);
-const [showForm, setShowForm] = useState(false);
-
 
 
   const router = useRouter();
@@ -86,10 +83,21 @@ const scrollToAndHighlight = (slug) => {
     return;
   }
 
-  const formattedProducts = products.map((product) => ({
-    ...product,
-    issued: Array.isArray(product.issued) ? product.issued.join(", ") : product.issued || "",
-  }));
+ const formattedProducts = products.map((product) => ({
+  "Product ID": product.code,
+  "Asset Name": product.slug,
+  "Serial Number": product.serial,
+  "Category": product.category,
+  "Branch": product.branch,
+  "Issued To": Array.isArray(product.issued)
+    ? product.issued.join(", ")
+    : product.issued || "",
+  "Status": product.status || "—",
+  "Quantity": product.quantity || 0,
+  "Unit Price": product.price || 0,
+  "Total Price": (product.price || 0) * (product.quantity || 0),
+}));
+
 
   // Capitalize the first letter of each key for headers
   const headers = Object.keys(formattedProducts[0]).map((key) =>
@@ -459,172 +467,6 @@ const pieChartData = {
       <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] grid-rows-[auto_1fr] gap-4 w-full">
       
       
-      <div className="container mx-auto shadow-md rounded-md p-3 my-8 w-11/12 bg-white">
-      <h1 className="text-3xl font-semibold mb-6 text-gray-800">Add a Product</h1>
-      <form onSubmit={addProduct} className="space-y-4">
-      <div>
-        <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">Product ID</label>
-        <input
-          value={productForm?.code || ""}
-          name="code"
-          onChange={handleChange}
-          type="text"
-          id="code"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="productName" className="block text-sm font-medium text-gray-700 mb-1">Asset Name</label>
-        <input
-          value={productForm?.slug || ""}
-          name="slug"
-          onChange={handleChange}
-          type="text"
-          id="productName"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="productSerial" className="block text-sm font-medium text-gray-700 mb-1">Serial Number</label>
-        <input
-          value={productForm?.serial || ""}
-          name="serial"
-          onChange={handleChange}
-          type="text"
-          id="productSerial"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-        <input
-          value={productForm?.quantity || ""}
-          name="quantity"
-          onChange={handleChange}
-          type="number"
-          id="quantity"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">Price</label>
-        <input
-          value={productForm?.price || ""}
-          name="price"
-          onChange={handleChange}
-          type="number"
-          id="price"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-        <select
-          id="category"
-          name="category"
-          value={productForm?.category || ""}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-primary focus:border-primary"
-        >
-          <option value="">Select Category</option>
-          <option value="IT Equipment">IT Equipment</option>
-          <option value="Furniture and Fixtures">Furniture and Fixtures</option>
-          <option value="Office Supplies">Office Supplies</option>
-          <option value="AHA Training">AHA Training Equipment</option>
-          <option value="Appliances">Appliances</option>
-          <option value="Reviewer Handbook">Reviewer Handbook</option>
-          <option value="Freebies/Souvenirs">Freebies/Souvenirs</option>
-          <option value="Others">Others</option>
-
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-        <select
-          id="branch"
-          name="branch"
-          value={productForm?.branch || ""}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-primary focus:border-primary"
-        >
-          <option value="">Select Branch</option>
-          <option value="Makati">Makati</option>
-          <option value="Naga">Naga</option>
-          <option value="Both">Both</option>
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="issued" className="block text-sm font-medium text-gray-700 mb-1">Issued to</label>
-        <input
-          value={productForm?.issued || ""}
-          name="issued"
-          onChange={handleChange}
-          type="text"
-          id="issued"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-        <select
-          id="status"
-          name="status"
-          value={productForm?.status || ""}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-primary focus:border-primary"
-        >
-          <option value="">Select Status</option>
-          <option value="Deployed/In Use">Deployed/In Use</option>
-          <option value="Spare">Spare</option>
-          <option value="Defective">Defective</option>
-        </select>
-      </div>
-
-      <button
-        type="submit"
-        className="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg shadow-md font-semibold transition"
-      >
-        {isEditing ? "Update Product" : "Add Product"}
-      </button>
-        </form>
-      </div>
-
-        
-        <div className="w-full">
-          <div className="bg-white container mx-auto shadow-lg rounded-xl p-6 my-8 w-full">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">📊 Inventory Overview</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Bar Graph */}
-              <div className="bg-white border rounded-lg shadow-md p-4">
-      <h3 className="font-semibold text-lg mb-3 text-primary">📍 Inventory by Branch</h3>
-      
-                {/* Insert horizontal bar chart here */}
-                <Bar data={barChartData} options={barChartOptions} />
-                <div className="mt-4 text-right font-bold text-xl text-gray-800">
-                Overall Total Inventory: {totalInventory}
-              </div>
-
-              </div>
-
-              {/* Pie Graph */}
-              <div className="bg-white border rounded-lg shadow-md p-4">
-      <h3 className="font-semibold text-lg mb-3 text-primary">🗂️ Assets by Category</h3>
-                {/* Insert pie chart here */}
-                <Pie data={pieChartData} />
-              </div>
-            </div>
-          </div>
-        </div>
-
         
 
         <div className="w-full col-span-1 md:col-span-2">
@@ -848,6 +690,160 @@ const pieChartData = {
           </div>
         </div>
       </div>
+      {isEditing && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+      <h2 className="text-xl font-bold mb-4 text-gray-800">Edit Product</h2>
+      <form onSubmit={addProduct} className="space-y-4">
+        {/* Code */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Product ID</label>
+          <input
+            value={productForm.code || ""}
+            name="code"
+            onChange={handleChange}
+            type="text"
+            className="w-full border border-gray-300 rounded px-4 py-2"
+          />
+        </div>
+        {/* Slug */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Asset Name</label>
+          <input
+            value={productForm.slug || ""}
+            name="slug"
+            onChange={handleChange}
+            type="text"
+            className="w-full border border-gray-300 rounded px-4 py-2"
+          />
+        </div>
+        {/* Add all remaining fields the same way */}
+        <div>
+        <label htmlFor="productSerial" className="block text-sm font-medium text-gray-700 mb-1">Serial Number</label>
+        <input
+          value={productForm?.serial || ""}
+          name="serial"
+          onChange={handleChange}
+          type="text"
+          id="productSerial"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+        <input
+          value={productForm?.quantity || ""}
+          name="quantity"
+          onChange={handleChange}
+          type="number"
+          id="quantity"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+        <input
+          value={productForm?.price || ""}
+          name="price"
+          onChange={handleChange}
+          type="number"
+          id="price"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+        <select
+          id="category"
+          name="category"
+          value={productForm?.category || ""}
+          onChange={handleChange}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-primary focus:border-primary"
+        >
+          <option value="">Select Category</option>
+          <option value="IT Equipment">IT Equipment</option>
+          <option value="Furniture and Fixtures">Furniture and Fixtures</option>
+          <option value="Office Supplies">Office Supplies</option>
+          <option value="AHA Training">AHA Training Equipment</option>
+          <option value="Appliances">Appliances</option>
+          <option value="Reviewer Handbook">Reviewer Handbook</option>
+          <option value="Freebies/Souvenirs">Freebies/Souvenirs</option>
+          <option value="Others">Others</option>
+
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
+        <select
+          id="branch"
+          name="branch"
+          value={productForm?.branch || ""}
+          onChange={handleChange}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-primary focus:border-primary"
+        >
+          <option value="">Select Branch</option>
+          <option value="Makati">Makati</option>
+          <option value="Naga">Naga</option>
+          <option value="Both">Both</option>
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="issued" className="block text-sm font-medium text-gray-700 mb-1">Issued to</label>
+        <input
+          value={productForm?.issued || ""}
+          name="issued"
+          onChange={handleChange}
+          type="text"
+          id="issued"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+        <select
+          id="status"
+          name="status"
+          value={productForm?.status || ""}
+          onChange={handleChange}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-primary focus:border-primary"
+        >
+          <option value="">Select Status</option>
+          <option value="Deployed/In Use">Deployed/In Use</option>
+          <option value="Spare">Spare</option>
+          <option value="Defective">Defective</option>
+        </select>
+      </div>
+        {/* Submit + Cancel */}
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            type="button"
+            onClick={() => {
+              setIsEditing(false);
+              setProductForm({});
+              setEditingProductId(null);
+            }}
+            className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+          >
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+
       {showModal && selectedProduct && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
@@ -897,129 +893,15 @@ const pieChartData = {
           </div>
         </div>
       )}
-
-{/* Floating Button */}
-<button
-  onClick={() => setShowForm(true)}
-  className="fixed bottom-6 right-6 bg-primary text-white w-14 h-14 flex items-center justify-center rounded-full shadow-2xl hover:bg-secondary transition duration-300 ease-in-out"
-  aria-label="Add Product"
->
-  <Plus className="w-6 h-6" />
-</button>
-
-
-       {showForm && (
-  <div
-    className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center"
-    onClick={() => setShowForm(false)}
-  >
-    <div
-      className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto animate-modal-in"
-      onClick={(e) => e.stopPropagation()}
-    >
-      {/* Close Button */}
-      <button
-        className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl"
-        onClick={() => setShowForm(false)}
-        aria-label="Close form"
-      >
-        &times;
-      </button>
-
-      {/* Form content remains unchanged */}
-      <h1 className="text-2xl font-semibold mb-4 text-gray-800">Add a Product</h1>
-      <form onSubmit={addProduct} className="space-y-4">
-        {/* Input fields */}
-        {[
-          { id: "code", label: "Product ID", type: "text" },
-          { id: "slug", label: "Asset Name", type: "text" },
-          { id: "serial", label: "Serial Number", type: "text" },
-          { id: "quantity", label: "Quantity", type: "number" },
-          { id: "price", label: "Price", type: "number" },
-          { id: "issued", label: "Issued to", type: "text" },
-        ].map(({ id, label, type }) => (
-          <div key={id}>
-            <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-            <input
-              value={productForm?.[id] || ""}
-              name={id}
-              onChange={handleChange}
-              type={type}
-              id={id}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
-            />
-          </div>
-        ))}
-
-        {/* Select: Category */}
-        <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-          <select
-            id="category"
-            name="category"
-            value={productForm?.category || ""}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-primary focus:border-primary"
-          >
-            <option value="">Select Category</option>
-            <option value="IT Equipment">IT Equipment</option>
-            <option value="Furniture and Fixtures">Furniture and Fixtures</option>
-            <option value="Office Supplies">Office Supplies</option>
-            <option value="AHA Training">AHA Training Equipment</option>
-            <option value="Appliances">Appliances</option>
-            <option value="Reviewer Handbook">Reviewer Handbook</option>
-            <option value="Freebies/Souvenirs">Freebies/Souvenirs</option>
-            <option value="Others">Others</option>
-          </select>
-        </div>
-
-        {/* Select: Branch */}
-        <div>
-          <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-          <select
-            id="branch"
-            name="branch"
-            value={productForm?.branch || ""}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-primary focus:border-primary"
-          >
-            <option value="">Select Branch</option>
-            <option value="Makati">Makati</option>
-            <option value="Naga">Naga</option>
-            <option value="Both">Both</option>
-          </select>
-        </div>
-
-        {/* Select: Status */}
-        <div>
-          <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-          <select
-            id="status"
-            name="status"
-            value={productForm?.status || ""}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-primary focus:border-primary"
-          >
-            <option value="">Select Status</option>
-            <option value="Deployed/In Use">Deployed/In Use</option>
-            <option value="Spare">Spare</option>
-            <option value="Defective">Defective</option>
-          </select>
-        </div>
-
-        {/* Submit Button */}
+    
+      {showScrollTop && (
         <button
-          type="submit"
-          className="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg shadow-md font-semibold transition"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-6 right-6 z-50 bg-primary hover:bg-secondary text-white px-4 py-2 rounded-full shadow-lg"
         >
-          {isEditing ? "Update Product" : "Add Product"}
+          ↑ Top
         </button>
-      </form>
-    </div>
-  </div>
-)}
-
-
+      )}
 
       {showDeleteModal && productToDelete && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
@@ -1044,9 +926,6 @@ const pieChartData = {
         >
           Delete
         </button>
-
-       
-
       </div>
     </div>
   </div>
