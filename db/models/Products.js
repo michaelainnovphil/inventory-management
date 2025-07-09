@@ -43,6 +43,11 @@ const ProductsSchema = new Schema({
     type: String,
     required: false,
   },
+  purchaseDate: {
+  type: Date,
+  required: false,
+}
+
 });
 
 ProductsSchema.plugin(mongooseUniqueValidator, {

@@ -29,8 +29,10 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  ArcElement
+  ArcElement,
 );
+
+
 
 export default function Dashboard() {
   const [productForm, setProductForm] = useState({});
@@ -136,6 +138,67 @@ const scrollToAndHighlight = (slug) => {
   saveAs(blob, "products.xlsx");
 };
 
+const statusQuantities = products.reduce((acc, product) => {
+  const status = product.status || "Unknown";
+  acc[status] = (acc[status] || 0) + (product.quantity || 0);
+  return acc;
+}, {});
+
+const statusColorMap = {
+  "Deployed/In Use": "#1aa6b7",
+  "Spare": "#ff6510",
+  "Defective": "#f22f50",
+  "Unknown": "#a3a3a3",
+};
+
+const statusLabels = Object.keys(statusQuantities);
+const statusData = statusLabels.map(label => statusQuantities[label]);
+const statusColors = statusLabels.map(label => statusColorMap[label] || "#a3a3a3");
+
+const statusBarChartData = {
+  labels: [""], // single x-axis category
+  datasets: statusLabels.map((status, i) => ({
+    label: status,
+    data: [statusQuantities[status]],
+    backgroundColor: statusColorMap[status] || "#a3a3a3",
+  })),
+};
+
+
+const statusBarChartOptions = {
+  indexAxis: "y", // optional: horizontal layout
+  responsive: true,
+  plugins: {
+    legend: {
+      display: true,
+      position: "top",
+      labels: {
+        color: "#333",
+        font: {
+          size: 14,
+          weight: "bold"
+        }
+      }
+    },
+    title: {
+      display: true,
+      text: "Equipment Status",
+      font: {
+        size: 18,
+        weight: "bold",
+      },
+    },
+  },
+  scales: {
+    x: {
+      beginAtZero: true,
+    },
+  },
+};
+
+
+
+
 
 
   const buttonAction = async (action, slug, initialQuantity) => {
@@ -216,6 +279,7 @@ const scrollToAndHighlight = (slug) => {
         branch: "",
         issued: "",
         status: "",
+        purchaseDate: "",
       });
       setIsEditing(false);
       setEditingProductId(null);
@@ -381,7 +445,7 @@ const branchData = Object.entries(branchQuantities).map(([branch, quantity], i) 
 }));
 
 const barChartData = {
-  labels: ["Total Inventory per Branch"], // one grouped bar
+  labels: [""], // one grouped bar
   datasets: branchData,
 };
 
@@ -456,447 +520,51 @@ const pieChartData = {
 
       
       {/* Display Current Stock  */}
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] grid-rows-[auto_1fr] gap-4 w-full">
+      <div className="w-full">
+  <div className="bg-white container mx-auto shadow-lg rounded-xl p-6 my-8 w-full">
+    <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">
+      📊 Inventory Overview
+    </h2>
+
+    {/* Flex layout with equal height columns */}
+    <div className="flex flex-col md:flex-row gap-6 items-stretch">
       
-      
-      <div className="container mx-auto shadow-md rounded-md p-3 my-8 w-11/12 bg-white">
-      <h1 className="text-3xl font-semibold mb-6 text-gray-800">Add a Product</h1>
-      <form onSubmit={addProduct} className="space-y-4">
-      <div>
-        <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">Product ID</label>
-        <input
-          value={productForm?.code || ""}
-          name="code"
-          onChange={handleChange}
-          type="text"
-          id="code"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
-        />
+      {/* Column 1: Stacked bar charts */}
+      <div className="flex flex-col flex-1 gap-6">
+        <div className="bg-white border rounded-xl shadow-md p-6 h-full">
+          <h3 className="font-semibold text-lg mb-4 text-primary">
+            📍 Inventory by Branch
+          </h3>
+          <Bar data={barChartData} options={barChartOptions} />
+        </div>
+        <div className="bg-white border rounded-xl shadow-md p-6 h-full">
+          <h3 className="font-semibold text-lg mb-4 text-primary">
+            🛠️ Equipment Status
+          </h3>
+          <Bar data={statusBarChartData} options={statusBarChartOptions} />
+        </div>
       </div>
 
-      <div>
-        <label htmlFor="productName" className="block text-sm font-medium text-gray-700 mb-1">Asset Name</label>
-        <input
-          value={productForm?.slug || ""}
-          name="slug"
-          onChange={handleChange}
-          type="text"
-          id="productName"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="productSerial" className="block text-sm font-medium text-gray-700 mb-1">Serial Number</label>
-        <input
-          value={productForm?.serial || ""}
-          name="serial"
-          onChange={handleChange}
-          type="text"
-          id="productSerial"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-        <input
-          value={productForm?.quantity || ""}
-          name="quantity"
-          onChange={handleChange}
-          type="number"
-          id="quantity"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">Price</label>
-        <input
-          value={productForm?.price || ""}
-          name="price"
-          onChange={handleChange}
-          type="number"
-          id="price"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-        <select
-          id="category"
-          name="category"
-          value={productForm?.category || ""}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-primary focus:border-primary"
-        >
-          <option value="">Select Category</option>
-          <option value="IT Equipment">IT Equipment</option>
-          <option value="Furniture and Fixtures">Furniture and Fixtures</option>
-          <option value="Office Supplies">Office Supplies</option>
-          <option value="AHA Training">AHA Training Equipment</option>
-          <option value="Appliances">Appliances</option>
-          <option value="Reviewer Handbook">Reviewer Handbook</option>
-          <option value="Freebies/Souvenirs">Freebies/Souvenirs</option>
-          <option value="Others">Others</option>
-
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-        <select
-          id="branch"
-          name="branch"
-          value={productForm?.branch || ""}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-primary focus:border-primary"
-        >
-          <option value="">Select Branch</option>
-          <option value="Makati">Makati</option>
-          <option value="Naga">Naga</option>
-          <option value="Both">Both</option>
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="issued" className="block text-sm font-medium text-gray-700 mb-1">Issued to</label>
-        <input
-          value={productForm?.issued || ""}
-          name="issued"
-          onChange={handleChange}
-          type="text"
-          id="issued"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-        <select
-          id="status"
-          name="status"
-          value={productForm?.status || ""}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-primary focus:border-primary"
-        >
-          <option value="">Select Status</option>
-          <option value="Deployed/In Use">Deployed/In Use</option>
-          <option value="Spare">Spare</option>
-          <option value="Defective">Defective</option>
-        </select>
-      </div>
-
-      <button
-        type="submit"
-        className="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg shadow-md font-semibold transition"
-      >
-        {isEditing ? "Update Product" : "Add Product"}
-      </button>
-        </form>
-      </div>
-
+      {/* Column 2: Pie Chart, fills height of stacked left column */}
+      <div className="bg-white border rounded-xl shadow-md p-6 flex-1 h-full self-stretch">
+        <h3 className="font-semibold text-lg mb-4 text-primary">
+          🗂️ Assets by Category
+        </h3>
+        <div className="h-full flex items-center justify-center">
+          <Pie data={pieChartData} />
+        </div>
         
-        <div className="w-full">
-          <div className="bg-white container mx-auto shadow-lg rounded-xl p-6 my-8 w-full">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">📊 Inventory Overview</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Bar Graph */}
-              <div className="bg-white border rounded-lg shadow-md p-4">
-      <h3 className="font-semibold text-lg mb-3 text-primary">📍 Inventory by Branch</h3>
-      
-                {/* Insert horizontal bar chart here */}
-                <Bar data={barChartData} options={barChartOptions} />
-                <div className="mt-4 text-right font-bold text-xl text-gray-800">
-                Overall Total Inventory: {totalInventory}
-              </div>
-
-              </div>
-
-              {/* Pie Graph */}
-              <div className="bg-white border rounded-lg shadow-md p-4">
-      <h3 className="font-semibold text-lg mb-3 text-primary">🗂️ Assets by Category</h3>
-                {/* Insert pie chart here */}
-                <Pie data={pieChartData} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        
-
-        <div className="w-full col-span-1 md:col-span-2">
-          <div className="container mx-auto w-full md:w-1/2  my-8  px-3 md:px-0">
-        <h1 className="text-2xl md:text-3xl font-bold mb-4 text-gray-800">Search a Product</h1>
-        <div className="flex rounded-lg shadow-sm overflow-hidden ring-1 ring-gray-300 focus-within:ring-2 focus-within:ring-primary mb-4">
-
-          <input
-            onChange={onDropdownEdit}
-            type="text"
-            placeholder="Enter a product name"
-               className="flex-1 px-4 py-2 text-sm md:text-base bg-white text-gray-700 focus:outline-none"
-
-          />
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-    className="bg-gray-100 border-l border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base text-gray-700 focus:outline-none"
-          >
-            <option value="">All</option>
-            <option value="IT Equipment">IT Equipment</option>
-            <option value="Furniture and Fixtures">Furniture and Fixtures</option>
-            <option value="Office Supplies">Office Supplies</option>
-            <option value="AHA Training">AHA Training Equipment</option>
-                <option value="Appliances">Appliances</option>
-                <option value="Reviewer Handbook">Reviewer Handbook</option>
-                <option value="Freebies/Souvenirs">Freebies/Souvenirs</option>
-                <option value="Others">Others</option>
-          </select>
-        </div>
-        {loading && (
-          <div className="flex justify-center items-center">
-            {" "}
-            <p>loading...</p>
-          </div>
-        )}
-    <div className="dropcontainer absolute z-40 w-11/12 md:w-1/2 bg-white border border-gray-200 shadow-lg rounded-lg mt-2 overflow-y-auto max-h-60">
-
-          {search &&
-            (dropdown.length > 0 ? (
-              dropdown.map((item) => {
-                return (
-                  <div
-            key={item.slug}
-            onClick={() => scrollToAndHighlight(item.slug)}
-    className="cursor-pointer px-4 py-2 border-b hover:bg-primary/10 transition-colors"
-          >
-    <div className="font-semibold text-gray-800 text-sm md:text-base">
-              {item.slug} ({item.quantity} pcs) – ₱{item.price * item.quantity}
-            </div>
-    <div className="text-xs text-gray-500">
-              ID: {item.code} | Issued To:{" "}
-              {Array.isArray(item.issued) ? item.issued.join(", ") : item.issued || "N/A"}
-            </div>
-          </div>
-                );
-              })
-            ) : (
-              <div> Not found.</div>
-            ))}
-        </div>
       </div>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-4 mb-4">
-    <div className="flex items-center gap-2">
-    <label htmlFor="groupToggle" className="font-medium text-gray-800">Group by Issued To</label>
-    <input
-      type="checkbox"
-      id="groupToggle"
-      checked={groupByIssuedTo}
-      onChange={(e) => setGroupByIssuedTo(e.target.checked)}
-      className="w-5 h-5 accent-blue-600"
-    />
-    </div>
-    <button
-    onClick={exportToExcel}
-    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow-sm transition"
-    >
-    Export to Excel
-    </button>
     </div>
 
+    {/* Centered total */}
+    <div className="mt-8 text-center font-bold text-xl text-gray-800">
+      📦 Overall Total Inventory: <span className="text-primary">{totalInventory}</span>
+    </div>
+  </div>
+</div>
 
-
-
-
-        <div className="overflow-x-auto bg-white rounded-lg shadow-md p-4">
-
-          
-            <table className="min-w-full table-auto border border-gray-200 rounded-lg text-sm md:text-base shadow-sm">
-    <thead className="bg-primary text-white text-left">
-    <tr>
-      <th className="px-4 py-3 font-semibold">Product ID</th>
-      <th className="px-4 py-3 font-semibold">Asset Name</th>
-      <th className="px-4 py-3 font-semibold">Serial Number</th>
-      <th className="px-4 py-3 font-semibold">Category</th>
-      <th className="px-4 py-3 font-semibold">Branch</th>
-      <th className="px-4 py-3 font-semibold">Issued to</th>
-      <th className="px-4 py-3 font-semibold">Status</th>
-      <th className="px-4 py-3 font-semibold text-center">Qty</th>
-      <th className="px-4 py-3 font-semibold text-right">Unit Price</th>
-      <th className="px-4 py-3 font-semibold text-right">Total Price</th>
-      <th className="px-4 py-3 font-semibold text-center">Action</th>
-    </tr>
-    </thead>
-
-    <tbody className="divide-y divide-gray-100">
-    {groupByIssuedTo ? (
-      Object.entries(
-        products
-          .filter((product) =>
-            selectedCategory ? product.category === selectedCategory : true
-          )
-          .reduce((acc, product) => {
-            const issuedList = Array.isArray(product.issued)
-              ? product.issued
-              : [product.issued || "Unassigned"];
-            issuedList.forEach((person) => {
-              if (!acc[person]) acc[person] = [];
-              acc[person].push(product);
-            });
-            return acc;
-          }, {})
-      ).map(([issuedTo, group]) => (
-        <React.Fragment key={issuedTo}>
-          <tr className="bg-orange-500 text-white">
-            <td colSpan="10" className="px-4 py-2 font-semibold">
-              {issuedTo}
-            </td>
-          </tr>
-          {group.map((product) => (
-            <tr
-              ref={(el) => (productRefs.current[product.slug] = el)}
-              key={product._id || product.code}
-              onClick={() => openProductModal(product)}
-              className="even:bg-gray-50 hover:bg-blue-50 transition cursor-pointer"
-            >
-              <td className="px-4 py-2">{product.code || "—"}</td>
-              <td className="px-4 py-2">{product.slug || "—"}</td>
-              <td className="px-4 py-2">{product.serial || "—"}</td>
-              <td className="px-4 py-2">{product.category || "—"}</td>
-              <td className="px-4 py-2">{product.branch || "—"}</td>
-              <td className="px-4 py-2">
-                {Array.isArray(product.issued)
-                  ? product.issued.join(", ")
-                  : product.issued || "—"}
-              </td>
-              <td className="px-4 py-2 text-center">{product.status || "—"}</td>
-              <td className="px-4 py-2 text-center">{product.quantity || 0}</td>
-              <td className="px-4 py-2 text-right">₱{product.price || 0}</td>
-              <td className="px-4 py-2 text-right">
-                ₱{(product.price || 0) * (product.quantity || 0)}
-              </td>
-              <td className="px-4 py-2 text-center text-red-600 text-2xl">
-                <MdDelete
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setProductToDelete(product);
-                    setShowDeleteModal(true);
-                  }}
-                  className="cursor-pointer"
-                />
-              </td>
-            </tr>
-          ))}
-        </React.Fragment>
-      ))
-    ) : (
-      products
-        .filter((product) =>
-          selectedCategory ? product.category === selectedCategory : true
-        )
-        .sort((a, b) => {
-          const catA = a.category?.toLowerCase() || "";
-          const catB = b.category?.toLowerCase() || "";
-          const codeA = a.code?.toLowerCase() || "";
-          const codeB = b.code?.toLowerCase() || "";
-
-          if (catA < catB) return -1;
-          if (catA > catB) return 1;
-          return codeA.localeCompare(codeB);
-        })
-        .map((product) => (
-          <tr
-            ref={(el) => (productRefs.current[product.slug] = el)}
-            key={product._id || product.code}
-            onClick={() => openProductModal(product)}
-            className="hover:bg-blue-50 transition cursor-pointer"
-          >
-            <td className="px-4 py-2">{product.code || "—"}</td>
-            <td className="px-4 py-2">{product.slug || "—"}</td>
-            <td className="px-4 py-2">{product.serial || "—"}</td>
-            <td className="px-4 py-2">{product.category || "—"}</td>
-            <td className="px-4 py-2">{product.branch || "—"}</td>
-            <td className="px-4 py-2">
-              {Array.isArray(product.issued)
-                ? product.issued.join(", ")
-                : product.issued || "—"}
-            </td>
-            <td className="px-4 py-2 text-center">{product.status || "—"}</td>
-            <td className="px-4 py-2 text-center">{product.quantity || 0}</td>
-            <td className="px-4 py-2 text-right">₱{product.price || 0}</td>
-            <td className="px-4 py-2 text-right">
-              ₱{(product.price || 0) * (product.quantity || 0)}
-            </td>
-            <td className="px-4 py-2 text-center text-red-600 text-2xl">
-              <MdDelete
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setProductToDelete(product);
-                  setShowDeleteModal(true);
-                }}
-                className="cursor-pointer"
-              />
-            </td>
-          </tr>
-        ))
-    )}
-    </tbody>
-    </table>
-
-          </div>
-        </div>
-      </div>
-      {showModal && selectedProduct && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-      <h2 className="text-xl font-bold mb-4">Product Details</h2>
-      <p><strong>Product ID:</strong> {selectedProduct.code}</p>
-      <p><strong>Asset Name:</strong> {selectedProduct.slug}</p>
-      <p><strong>Serial:</strong> {selectedProduct.serial}</p>
-      <p><strong>Category:</strong> {selectedProduct.category}</p>
-      <p><strong>Branch:</strong> {selectedProduct.branch}</p>
-      <p><strong>Issued To:</strong> {Array.isArray(selectedProduct.issued) ? selectedProduct.issued.join(", ") : selectedProduct.issued}</p>
-      <p><strong>Status:</strong> {selectedProduct.status}</p>
-      <p><strong>Quantity:</strong> {selectedProduct.quantity}</p>
-      <p><strong>Price:</strong> ₱{selectedProduct.price}</p>
-
-      <div className="flex justify-end mt-4 gap-2">
-        <button
-          className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded"
-          onClick={() => setShowModal(false)}
-        >
-          Close
-        </button>
-        <button
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-          onClick={() => {
-            setProductForm({
-              code: selectedProduct.code,
-              slug: selectedProduct.slug,
-              serial: selectedProduct.serial,
-              quantity: selectedProduct.quantity,
-              price: selectedProduct.price,
-              category: selectedProduct.category,
-              branch: selectedProduct.branch,
-              issued: Array.isArray(selectedProduct.issued)
-                ? selectedProduct.issued.join(", ")
-                : selectedProduct.issued,
-              status: selectedProduct.status,
-            });
-            setIsEditing(true); // enable edit mode
-            setEditingProductId(selectedProduct._id); // store product ID
-            setShowModal(false);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-              >
-                Edit
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      
 
 {/* Floating Button */}
 <button
@@ -1007,6 +675,19 @@ const pieChartData = {
           </select>
         </div>
 
+        <div>
+        <label htmlFor="purchaseDate" className="block text-sm font-medium text-gray-700 mb-1">Purchase Date</label>
+        <input
+          type="date"
+          id="purchaseDate"
+          name="purchaseDate"
+          value={productForm.purchaseDate || ""}
+          onChange={handleChange}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
+        />
+      </div>
+
+
         {/* Submit Button */}
         <button
           type="submit"
@@ -1044,14 +725,10 @@ const pieChartData = {
         >
           Delete
         </button>
-
-       
-
       </div>
     </div>
   </div>
 )}
-
     </div>
   );
 }

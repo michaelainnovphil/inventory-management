@@ -78,12 +78,12 @@ const scrollToAndHighlight = (slug) => {
   }, []);
 
   const exportToExcel = () => {
-  if (!products || products.length === 0) {
+  if (!filteredProducts || filteredProducts.length === 0) {
     toast.warn("No products to export");
     return;
   }
 
- const formattedProducts = products.map((product) => ({
+  const formattedProducts = filteredProducts.map((product) => ({
   "Product ID": product.code,
   "Asset Name": product.slug,
   "Serial Number": product.serial,
@@ -93,6 +93,7 @@ const scrollToAndHighlight = (slug) => {
     ? product.issued.join(", ")
     : product.issued || "",
   "Status": product.status || "—",
+  "Date of Purchase": product.purchaseDate || "—",
   "Quantity": product.quantity || 0,
   "Unit Price": product.price || 0,
   "Total Price": (product.price || 0) * (product.quantity || 0),
@@ -224,6 +225,7 @@ const scrollToAndHighlight = (slug) => {
         branch: "",
         issued: "",
         status: "",
+        purchaseDate: "",
       });
       setIsEditing(false);
       setEditingProductId(null);
@@ -327,9 +329,30 @@ const handleModalEdit = () => {
       ? selectedProduct.issued.join(", ")
       : selectedProduct.issued || "",
     status: selectedProduct.status || "",
+    purchaseDate: selectedProduct.purchaseDate || "",
   });
 
   setShowModal(false);
+};
+
+const calculateAge = (purchaseDate) => {
+  if (!purchaseDate) return "N/A";
+
+  const now = new Date();
+  const purchase = new Date(purchaseDate);
+
+  let years = now.getFullYear() - purchase.getFullYear();
+  let months = now.getMonth() - purchase.getMonth();
+
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+
+  const yearText = years > 0 ? `${years} year${years !== 1 ? "s" : ""}` : "";
+  const monthText = months > 0 ? `${months} month${months !== 1 ? "s" : ""}` : "";
+
+  return [yearText, monthText].filter(Boolean).join(" ") || "0 months";
 };
 
 
@@ -368,9 +391,13 @@ const handleModalEdit = () => {
 
 
 
-  const filteredProducts = products.filter(
-  (item) => item.slug?.trim() || item.code?.trim()
-);
+const filteredProducts = products.filter((product) => {
+  const hasValidSlugOrCode = product.slug?.trim() || product.code?.trim();
+  const matchesCategory = selectedCategory
+    ? product.category === selectedCategory
+    : true;
+  return hasValidSlugOrCode && matchesCategory;
+});
 
   // Compute total quantity per branch for horizontal bar chart
 const branchQuantities = products.reduce((acc, product) => {
@@ -454,20 +481,11 @@ const pieChartData = {
 };
 
 
-
-
   return (
     <div className="md:p-6 w-full">
       <Header />
-
-      
-
-      
       {/* Display Current Stock  */}
       <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] grid-rows-[auto_1fr] gap-4 w-full">
-      
-      
-        
 
         <div className="w-full col-span-1 md:col-span-2">
           <div className="container mx-auto w-full md:w-1/2  my-8  px-3 md:px-0">
@@ -477,7 +495,7 @@ const pieChartData = {
           <input
             onChange={onDropdownEdit}
             type="text"
-            placeholder="Enter a product name"
+            placeholder="Enter item"
                className="flex-1 px-4 py-2 text-sm md:text-base bg-white text-gray-700 focus:outline-none"
 
           />
@@ -555,8 +573,9 @@ const pieChartData = {
         <div className="overflow-x-auto bg-white rounded-lg shadow-md p-4">
 
           
-            <table className="min-w-full table-auto border border-gray-200 rounded-lg text-sm md:text-base shadow-sm">
-    <thead className="bg-primary text-white text-left">
+           <table className="min-w-full table-auto border border-gray-200 rounded-xl text-sm md:text-base shadow">
+
+    <thead className="bg-primary text-white text-sm md:text-base">
     <tr>
       <th className="px-4 py-3 font-semibold">Product ID</th>
       <th className="px-4 py-3 font-semibold">Asset Name</th>
@@ -565,6 +584,7 @@ const pieChartData = {
       <th className="px-4 py-3 font-semibold">Branch</th>
       <th className="px-4 py-3 font-semibold">Issued to</th>
       <th className="px-4 py-3 font-semibold">Status</th>
+      <th className="px-4 py-3 font-semibold">Age</th>
       <th className="px-4 py-3 font-semibold text-center">Qty</th>
       <th className="px-4 py-3 font-semibold text-right">Unit Price</th>
       <th className="px-4 py-3 font-semibold text-right">Total Price</th>
@@ -592,7 +612,7 @@ const pieChartData = {
       ).map(([issuedTo, group]) => (
         <React.Fragment key={issuedTo}>
           <tr className="bg-orange-500 text-white">
-            <td colSpan="10" className="px-4 py-2 font-semibold">
+            <td colSpan="10" className="px-5 py-3 font-semibold">
               {issuedTo}
             </td>
           </tr>
@@ -603,23 +623,24 @@ const pieChartData = {
               onClick={() => openProductModal(product)}
               className="even:bg-gray-50 hover:bg-blue-50 transition cursor-pointer"
             >
-              <td className="px-4 py-2">{product.code || "—"}</td>
-              <td className="px-4 py-2">{product.slug || "—"}</td>
-              <td className="px-4 py-2">{product.serial || "—"}</td>
-              <td className="px-4 py-2">{product.category || "—"}</td>
-              <td className="px-4 py-2">{product.branch || "—"}</td>
-              <td className="px-4 py-2">
+              <td className="px-5 py-3 text-center">{product.code || "—"}</td>
+              <td className="px-5 py-3 text-center">{product.slug || "—"}</td>
+              <td className="px-5 py-3 text-center">{product.serial || "—"}</td>
+              <td className="px-5 py-3 text-center">{product.category || "—"}</td>
+              <td className="px-5 py-3 text-center">{product.branch || "—"}</td>
+              <td className="px-5 py-3 text-center">
                 {Array.isArray(product.issued)
                   ? product.issued.join(", ")
                   : product.issued || "—"}
               </td>
-              <td className="px-4 py-2 text-center">{product.status || "—"}</td>
-              <td className="px-4 py-2 text-center">{product.quantity || 0}</td>
-              <td className="px-4 py-2 text-right">₱{product.price || 0}</td>
-              <td className="px-4 py-2 text-right">
+              <td className="px-5 py-3 text-center">{product.status || "—"}</td>
+              <td className="px-5 py-3 text-center">{calculateAge(product.purchaseDate)}</td>
+              <td className="px-5 py-3 text-center">{product.quantity || 0}</td>
+              <td className="px-5 py-3 text-right">₱{product.price || 0}</td>
+              <td className="px-5 py-3 text-right">
                 ₱{(product.price || 0) * (product.quantity || 0)}
               </td>
-              <td className="px-4 py-2 text-center text-red-600 text-2xl">
+              <td className="px-5 py-3 text-center text-red-600 text-2xl">
                 <MdDelete
                   onClick={(e) => {
                     e.stopPropagation();
@@ -655,17 +676,18 @@ const pieChartData = {
             onClick={() => openProductModal(product)}
             className="hover:bg-blue-50 transition cursor-pointer"
           >
-            <td className="px-4 py-2">{product.code || "—"}</td>
-            <td className="px-4 py-2">{product.slug || "—"}</td>
-            <td className="px-4 py-2">{product.serial || "—"}</td>
-            <td className="px-4 py-2">{product.category || "—"}</td>
-            <td className="px-4 py-2">{product.branch || "—"}</td>
-            <td className="px-4 py-2">
+            <td className="px-4 py-2 text-center">{product.code || "—"}</td>
+            <td className="px-4 py-2 text-center">{product.slug || "—"}</td>
+            <td className="px-4 py-2 text-center">{product.serial || "—"}</td>
+            <td className="px-4 py-2 text-center">{product.category || "—"}</td>
+            <td className="px-4 py-2 text-center">{product.branch || "—"}</td>
+            <td className="px-4 py-2 text-center">
               {Array.isArray(product.issued)
                 ? product.issued.join(", ")
                 : product.issued || "—"}
             </td>
             <td className="px-4 py-2 text-center">{product.status || "—"}</td>
+            <td className="px-4 py-2 text-center">{calculateAge(product.purchaseDate)}</td>
             <td className="px-4 py-2 text-center">{product.quantity || 0}</td>
             <td className="px-4 py-2 text-right">₱{product.price || 0}</td>
             <td className="px-4 py-2 text-right">
@@ -691,8 +713,8 @@ const pieChartData = {
         </div>
       </div>
       {isEditing && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+  <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+    <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto animate-modal-in">
       <h2 className="text-xl font-bold mb-4 text-gray-800">Edit Product</h2>
       <form onSubmit={addProduct} className="space-y-4">
         {/* Code */}
@@ -819,6 +841,19 @@ const pieChartData = {
           <option value="Defective">Defective</option>
         </select>
       </div>
+
+      <div>
+        <label htmlFor="purchaseDate" className="block text-sm font-medium text-gray-700 mb-1">Purchase Date</label>
+        <input
+          type="date"
+          id="purchaseDate"
+          name="purchaseDate"
+          value={productForm.purchaseDate || ""}
+          onChange={handleChange}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
+        />
+      </div>
+      
         {/* Submit + Cancel */}
         <div className="flex justify-end gap-2 pt-2">
           <button
@@ -848,13 +883,25 @@ const pieChartData = {
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
       <h2 className="text-xl font-bold mb-4">Product Details</h2>
-      <p><strong>Product ID:</strong> {selectedProduct.code}</p>
+      <p>
+  <strong>Date:</strong>{" "}
+  {selectedProduct.purchaseDate
+    ? new Date(selectedProduct.purchaseDate).toISOString().split("T")[0]
+    : "—"}
+</p>
+
       <p><strong>Asset Name:</strong> {selectedProduct.slug}</p>
       <p><strong>Serial:</strong> {selectedProduct.serial}</p>
       <p><strong>Category:</strong> {selectedProduct.category}</p>
       <p><strong>Branch:</strong> {selectedProduct.branch}</p>
       <p><strong>Issued To:</strong> {Array.isArray(selectedProduct.issued) ? selectedProduct.issued.join(", ") : selectedProduct.issued}</p>
       <p><strong>Status:</strong> {selectedProduct.status}</p>
+      <p>
+  <strong>Date:</strong>{" "}
+  {selectedProduct.purchaseDate
+    ? new Date(selectedProduct.purchaseDate).toISOString().split("T")[0]
+    : "—"}
+</p>
       <p><strong>Quantity:</strong> {selectedProduct.quantity}</p>
       <p><strong>Price:</strong> ₱{selectedProduct.price}</p>
 
@@ -880,6 +927,7 @@ const pieChartData = {
                 ? selectedProduct.issued.join(", ")
                 : selectedProduct.issued,
               status: selectedProduct.status,
+              purchaseDate: selectedProduct.purchaseDate,
             });
             setIsEditing(true); // enable edit mode
             setEditingProductId(selectedProduct._id); // store product ID

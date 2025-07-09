@@ -1,42 +1,18 @@
+// pages/api/search.js (or route handler)
 import connectToMongo from "@/db/dbConnect";
 import Product from "@/db/models/Products";
 import { verify } from "jsonwebtoken";
-import mongoose from "mongoose";
 
-import { NextResponse } from "next/server";
+export async function GET(req) {
+  const { searchParams } = new URL(req.url);
+  const query = searchParams.get("query");
 
-export async function GET(request) {
-  const query = request.nextUrl.searchParams.get("query");
-  const requestHeaders = new Headers(request.headers);
-  const token = requestHeaders.get("auth-token");
-  const data = verify(token, process.env.JWT_SECRET);
+  await connectToMongo();
+  const regex = new RegExp(query, "i"); // case-insensitive search
 
-  let id = data.user.id;
+  const products = await Product.find({
+    $or: [{ slug: regex }, { code: regex }],
+  });
 
-  try {
-    await connectToMongo();
-
-    const products = await Product.aggregate([
-      {
-        $match: {
-          user: new mongoose.Types.ObjectId(id),
-          $and: [
-            { slug: { $regex: query, $options: "i" } }, // Partial matching for name field
-          ],
-        },
-      },
-    ]);
-
-    return NextResponse.json({
-      success: true,
-
-      products,
-    });
-  } catch (error) {
-    console.error(error.message);
-    return new NextResponse(
-      JSON.stringify({ success: false, message: error.message }),
-      { status: 500, headers: { "content-type": "application/json" } }
-    );
-  }
+  return Response.json({ success: true, products });
 }

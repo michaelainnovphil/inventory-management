@@ -37,7 +37,7 @@ export async function POST(request) {
   try {
     await connectToMongo();
     const body = await request.json();
-    const { code, slug, serial, category, branch, issued, status, quantity, price } = body;
+    const { code, slug, serial, category, branch, issued, status, purchaseDate, quantity, price } = body;
 
     // Optional: Prevent duplicate product codes
     const existing = await Product.findOne({ code, user: request.user.id });
@@ -60,6 +60,7 @@ export async function POST(request) {
       branch,
       issued,
       status,
+      purchaseDate,
       quantity,
       price,
     });
@@ -86,7 +87,7 @@ export async function PUT(request) {
   try {
     await connectToMongo();
     const body = await request.json();
-    const { _id, code, slug, serial, category, branch, issued, status, quantity, price } = body;
+    const { _id, code, slug, serial, category, branch, issued, status, purchaseDate, quantity, price } = body;
 
     const existingProduct = await Product.findOne({ _id, user: request.user.id });
 
@@ -105,6 +106,7 @@ export async function PUT(request) {
     existingProduct.branch = branch;
     existingProduct.issued = issued;
     existingProduct.status = status;
+    existingProduct.purchaseDate = purchaseDate;
     existingProduct.quantity = quantity;
     existingProduct.price = price;
 
