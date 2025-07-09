@@ -10,9 +10,9 @@ export async function GET(req) {
   await connectToMongo();
   const regex = new RegExp(query, "i"); // case-insensitive search
 
-  const products = await Product.find({
+  const product = await Product.find({
     $or: [{ slug: regex }, { code: regex }],
   });
 
-  return Response.json({ success: true, products });
+  return Response.json({ success: true, product });
 }

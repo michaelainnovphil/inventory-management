@@ -489,20 +489,18 @@ const pieChartData = {
 
         <div className="w-full col-span-1 md:col-span-2">
           <div className="container mx-auto w-full md:w-1/2  my-8  px-3 md:px-0">
-        <h1 className="text-2xl md:text-3xl font-bold mb-4 text-gray-800">Search a Product</h1>
-        <div className="flex rounded-lg shadow-sm overflow-hidden ring-1 ring-gray-300 focus-within:ring-2 focus-within:ring-primary mb-4">
-
+        <h1 className=" md:text-3xl font-semibold mb-6">Search a Product</h1>
+        <div className="flex mb-2">
           <input
             onChange={onDropdownEdit}
             type="text"
-            placeholder="Enter item"
-               className="flex-1 px-4 py-2 text-sm md:text-base bg-white text-gray-700 focus:outline-none"
-
+            placeholder="Enter a product name"
+            className="flex-1 border border-gray-300 px-2 md:px-4 py-2 rounded-l-md"
           />
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-    className="bg-gray-100 border-l border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base text-gray-700 focus:outline-none"
+            className="border border-gray-300 px-1 md:px-4 py-2 rounded-r-md"
           >
             <option value="">All</option>
             <option value="IT Equipment">IT Equipment</option>
@@ -521,25 +519,51 @@ const pieChartData = {
             <p>loading...</p>
           </div>
         )}
-    <div className="dropcontainer absolute z-40 w-11/12 md:w-1/2 bg-white border border-gray-200 shadow-lg rounded-lg mt-2 overflow-y-auto max-h-60">
-
+        <div className="dropcontainer absolute w-11/12 md:w-1/2 border-1 bg-green-100 rounded-md ">
           {search &&
-            (dropdown.length > 0 ? (
+            (dropdown.length > 1 ? (
               dropdown.map((item) => {
                 return (
                   <div
-            key={item.slug}
-            onClick={() => scrollToAndHighlight(item.slug)}
-    className="cursor-pointer px-4 py-2 border-b hover:bg-primary/10 transition-colors"
-          >
-    <div className="font-semibold text-gray-800 text-sm md:text-base">
-              {item.slug} ({item.quantity} pcs) – ₱{item.price * item.quantity}
-            </div>
-    <div className="text-xs text-gray-500">
-              ID: {item.code} | Issued To:{" "}
-              {Array.isArray(item.issued) ? item.issued.join(", ") : item.issued || "N/A"}
-            </div>
-          </div>
+                    key={item.slug}
+                    className="container flex flex-col sm:flex-row justify-between p-2 my-1 border-b-2"
+                  >
+                    <span className="slug text-sm md:text-base">
+                      {" "}
+                      {item.slug} ({item.quantity} available for ₱
+                      {item.price * item.quantity})
+                    </span>
+                    <div className="mx-5">
+                      <button
+                        onClick={() => {
+                          buttonAction("minus", item.slug, item.quantity);
+                        }}
+                        disabled={loadingaction || item.quantity === 0}
+                        className={`subtract inline-block px-3 py-1 ${
+                          item.quantity === 0
+                            ? "cursor-not-allowed"
+                            : "cursor-pointer"
+                        } bg-green-500 text-white font-semibold rounded-lg shadow-md disabled:bg-green-200`}
+                      >
+                        {" "}
+                        -{" "}
+                      </button>
+
+                      <span className="quantity inline-block  min-w-3 mx-3">
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() => {
+                          buttonAction("plus", item.slug, item.quantity);
+                        }}
+                        disabled={loadingaction}
+                        className="add inline-block px-3 py-1 cursor-pointer bg-green-500 text-white font-semibold rounded-lg shadow-md disabled:bg-green-200"
+                      >
+                        {" "}
+                        +{" "}
+                      </button>
+                    </div>
+                  </div>
                 );
               })
             ) : (
@@ -547,24 +571,26 @@ const pieChartData = {
             ))}
         </div>
       </div>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-4 mb-4">
-    <div className="flex items-center gap-2">
-    <label htmlFor="groupToggle" className="font-medium text-gray-800">Group by Issued To</label>
-    <input
-      type="checkbox"
-      id="groupToggle"
-      checked={groupByIssuedTo}
-      onChange={(e) => setGroupByIssuedTo(e.target.checked)}
-      className="w-5 h-5 accent-blue-600"
-    />
-    </div>
-    <button
-    onClick={exportToExcel}
-    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow-sm transition"
-    >
-    Export to Excel
-    </button>
-    </div>
+<div className="flex justify-end pr-4">
+        <button
+          onClick={exportToExcel}
+          className="bg-green-600 text-white px-4 py-2 rounded mb-4"
+        >
+          Export to Excel
+        </button>
+      </div>
+
+
+      <div className="flex items-center gap-2 mb-4">
+  <label htmlFor="groupToggle" className="font-medium">Group by Issued To</label>
+  <input
+    type="checkbox"
+    id="groupToggle"
+    checked={groupByIssuedTo}
+    onChange={(e) => setGroupByIssuedTo(e.target.checked)}
+    className="w-5 h-5 accent-blue-600"
+  />
+</div>
 
 
 
