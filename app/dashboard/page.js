@@ -266,26 +266,31 @@ const statusBarChartOptions = {
     const result = await response.json();
 
     if (result.success) {
-      toast.success(isEditing ? "Product updated!" : "Product added!");
+  toast.success(isEditing ? "Product updated!" : "Product added!");
 
-      // Reset form
-      setProductForm({
-        code: "",
-        slug: "",
-        serial: "",
-        quantity: "",
-        price: "",
-        category: "",
-        branch: "",
-        issued: "",
-        status: "",
-        purchaseDate: "",
-      });
-      setIsEditing(false);
-      setEditingProductId(null);
-    } else {
-      toast.error(result.message ?? "Something went wrong");
-    }
+  // Reset form
+  setProductForm({
+    code: "",
+    slug: "",
+    serial: "",
+    quantity: "",
+    price: "",
+    category: "",
+    branch: "",
+    issued: "",
+    status: "",
+    purchaseDate: "",
+  });
+
+  setIsEditing(false);
+  setEditingProductId(null);
+
+  // ✅ Close the form modal
+  setShowForm(false);
+} else {
+  toast.error(result.message ?? "Something went wrong");
+}
+
   } catch (error) {
     toast.error(error?.message || "Something went wrong!");
   }

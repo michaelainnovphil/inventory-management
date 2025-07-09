@@ -4,11 +4,9 @@ import { useState, useEffect } from "react";
 import { MdDelete } from "react-icons/md";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { Bar, Pie } from "react-chartjs-2";
 import React from "react";
 import * as XLSX from "xlsx-js-style";
 import { saveAs } from "file-saver";
-import Link from "next/link";
 
 import {
   Chart as ChartJS,
@@ -51,7 +49,6 @@ export default function Dashboard() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 const [productToDelete, setProductToDelete] = useState(null);
 
-
   const router = useRouter();
   const productRefs = React.useRef({});
 
@@ -66,7 +63,6 @@ const scrollToAndHighlight = (slug) => {
     }, 3000); // Highlight for 3 seconds
   }
 };
-
 
   useEffect(() => {
     const handleScroll = () => {
@@ -93,7 +89,9 @@ const scrollToAndHighlight = (slug) => {
     ? product.issued.join(", ")
     : product.issued || "",
   "Status": product.status || "—",
-  "Date of Purchase": product.purchaseDate || "—",
+  "Date of Purchase": product.purchaseDate
+  ? new Date(product.purchaseDate).toISOString().split("T")[0]
+  : "—",
   "Quantity": product.quantity || 0,
   "Unit Price": product.price || 0,
   "Total Price": (product.price || 0) * (product.quantity || 0),
@@ -120,7 +118,7 @@ const scrollToAndHighlight = (slug) => {
     worksheet[cellRef].s = {
       fill: {
         patternType: "solid",
-        fgColor: { rgb: "0070C0" }, // blue background
+        fgColor: { rgb: "0a1f8f" }, // blue background
       },
       font: {
         color: { rgb: "FFFFFF" }, // white text
@@ -144,8 +142,6 @@ const scrollToAndHighlight = (slug) => {
 
   saveAs(blob, "products.xlsx");
 };
-
-
 
   const buttonAction = async (action, slug, initialQuantity) => {
     // Immediately change the quantity of the product with given slug in Products(only frontend)
@@ -192,7 +188,6 @@ const scrollToAndHighlight = (slug) => {
       ? productForm.issued.split(",").map((x) => x.trim())
       : [],
   };
-
   try {
     const url = "/api/product";
     const method = isEditing ? "PUT" : "POST";
@@ -208,7 +203,6 @@ const scrollToAndHighlight = (slug) => {
       },
       body,
     });
-
     const result = await response.json();
 
     if (result.success) {
@@ -235,6 +229,24 @@ const scrollToAndHighlight = (slug) => {
   } catch (error) {
     toast.error(error?.message || "Something went wrong!");
   }
+  const calculateAge = (purchaseDate) => {
+  if (!purchaseDate) return "N/A";
+
+  const now = new Date();
+  const purchase = new Date(purchaseDate);
+
+  let years = now.getFullYear() - purchase.getFullYear();
+  let months = now.getMonth() - purchase.getMonth();
+
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+
+  const yearText = years > 0 ? `${years} year${years !== 1 ? "s" : ""}` : "";
+  const monthText = months > 0 ? `${months} month${months !== 1 ? "s" : ""}` : "";
+  return [yearText, monthText].filter(Boolean).join(" ") || "0 months";
+};
 
   // Fetch all products again to sync back
   const response = await fetch("/api/product", {
@@ -247,9 +259,6 @@ const scrollToAndHighlight = (slug) => {
   const rjson = await response.json();
   setProducts(rjson.products);
 };
-
-
-
 
   //[] bracket notation to compute an expression
   const handleChange = (e) => {
@@ -280,7 +289,6 @@ const scrollToAndHighlight = (slug) => {
   }
 };
 
-
   // ---------------DELETE FUNCTION----------------
   const handleDeleteProduct = async (id) => {
 
@@ -294,9 +302,7 @@ const scrollToAndHighlight = (slug) => {
       },
       body: JSON.stringify(id),
     });
-
     const rjson = await response.json();
-
     if (rjson.success === true) {
       toast.success("Successfully Deleted");
       setLoadingDelAction(!loadingDelAction);
@@ -308,15 +314,12 @@ const scrollToAndHighlight = (slug) => {
   }
 };
 
-
 const openProductModal = (product) => {
   setSelectedProduct(product);
   setShowModal(true);
 };
-
 const handleModalEdit = () => {
   if (!selectedProduct) return;
-
   setProductForm({
     code: selectedProduct.code || "",
     slug: selectedProduct.slug || "",
@@ -565,9 +568,6 @@ const pieChartData = {
     Export to Excel
     </button>
     </div>
-
-
-
 
 
         <div className="overflow-x-auto bg-white rounded-lg shadow-md p-4">
@@ -978,7 +978,6 @@ const pieChartData = {
     </div>
   </div>
 )}
-
     </div>
   );
 }
