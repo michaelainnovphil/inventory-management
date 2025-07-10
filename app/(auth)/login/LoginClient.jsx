@@ -12,9 +12,9 @@ const Login = () => {
   const [inputType, setInputType] = useState("password");
 
   const changeInputType = () => {
-    if (inputType === "password") {
+    if (inputType == "password") {
       setInputType("text");
-    } else if (inputType === "text") {
+    } else if (inputType == "text") {
       setInputType("password");
     }
   };
@@ -22,7 +22,6 @@ const Login = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
-
   const showAlert = (message, type) => {
     setAlert({
       msg: message,
@@ -32,13 +31,12 @@ const Login = () => {
       setAlert(null);
     }, 2500);
   };
-
   const submitHandler = async (e) => {
     e.preventDefault();
     try {
       const response = await fetch("api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" }, // ✅ FIXED
+        headers: { "Content-Type": "application/json" }, // ✅ FIXED here
         body: JSON.stringify({
           email: credentials.email,
           password: credentials.password,
@@ -75,8 +73,8 @@ const Login = () => {
   return (
     <section className="h-screen">
       <Alert alert={alert} showAlert={showAlert} />
-      <div className="h-full mt-8 p-8 rounded-md">
-        <div className="g-6 flex h-full flex-wrap mx-auto items-center w-2/3 justify-center lg:justify-between">
+      <div className="h-full mt-8 p-8  rounded-md">
+        <div className="g-6 flex h-full flex-wrap mx-auto items-center w-2/3  justify-center lg:justify-between">
           <div className="shrink-1 mb-12 grow-0 basis-auto md:mb-0 md:w-9/12 md:shrink-0 lg:w-6/12 xl:w-6/12">
             <img src="/st-bg.png" className="w-full" alt="Sample image" />
           </div>
@@ -86,7 +84,7 @@ const Login = () => {
               <div className="relative mb-6">
                 <label className="">Email address</label>
                 <input
-                  className="peer block min-h-[auto] w-full rounded bg-white px-3 py-[0.32rem] leading-[2.15] outline-none"
+                  className="peer block min-h-[auto] w-full rounded  bg-white px-3 py-[0.32rem] leading-[2.15] outline-none"
                   type="email"
                   id="email"
                   name="email"
@@ -100,7 +98,7 @@ const Login = () => {
                 <label className="">Password</label>
                 <input
                   type={inputType}
-                  className="peer block min-h-[auto] w-full rounded bg-white px-3 py-[0.32rem] leading-[2.15] outline-none"
+                  className="peer block min-h-[auto] w-full rounded  bg-white px-3 py-[0.32rem] leading-[2.15] outline-none"
                   value={credentials?.password || ""}
                   name="password"
                   id="password"
@@ -116,7 +114,7 @@ const Login = () => {
 
               <div className="text-center lg:text-left">
                 <button
-                  className="inline-block rounded shadow-md bg-slate-900 hover:bg-[#2ff9c6] active:animate-ping hover:text-black px-7 pb-2.5 pt-3 text-sm font-medium uppercase leading-normal text-white focus:outline-none"
+                  className="inline-block rounded shadow-md bg-slate-900 hover:bg-[#2ff9c6] active:animate-ping hover:text-black px-7 pb-2.5 pt-3 text-sm font-medium uppercase leading-normal text-white  focus:outline-none"
                   type="submit"
                 >
                   Sign in
@@ -125,7 +123,7 @@ const Login = () => {
                 <p className="mb-0 mt-2 pt-1 text-sm font-semibold">
                   Don't have an account?{" "}
                   <Link href="/signup">
-                    <span className="text-green-400 active:text-white">
+                    <span className=" text-green-400 active:text-white ">
                       Register Now
                     </span>
                   </Link>
