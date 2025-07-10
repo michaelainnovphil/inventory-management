@@ -1,5 +1,5 @@
 "use client";
-import Header from "@/components/Header";
+import Header from "/components/Header";
 import { useState, useEffect } from "react";
 import { MdDelete } from "react-icons/md";
 import { useRouter } from "next/navigation";

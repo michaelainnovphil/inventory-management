@@ -1,5 +1,5 @@
-import connectToMongo from "/db/models/dbConnect.js";
-import User from "@/db/models/User";
+import connectToMongo from "/db/models/dbConnect";
+import User from "/db/models/User";
 
 import { verify } from "jsonwebtoken";
 

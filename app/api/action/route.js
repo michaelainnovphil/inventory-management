@@ -1,5 +1,5 @@
-import connectToMongo from "/db/models/dbConnect.js";
-import Product from "@/db/models/Products";
+import connectToMongo from "/db/models/dbConnect";
+import Product from "/db/models/Products";
 import { verify } from "jsonwebtoken";
 import { NextResponse } from "next/server";
 export async function POST(request) {
