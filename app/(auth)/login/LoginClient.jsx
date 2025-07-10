@@ -12,57 +12,39 @@ const Login = () => {
   const [inputType, setInputType] = useState("password");
 
   const changeInputType = () => {
-    if (inputType == "password") {
-      setInputType("text");
-    } else if (inputType == "text") {
-      setInputType("password");
-    }
+    setInputType(inputType === "password" ? "text" : "password");
   };
 
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
   const showAlert = (message, type) => {
-    setAlert({
-      msg: message,
-      type: type,
-    });
-    setTimeout(() => {
-      setAlert(null);
-    }, 2500);
+    setAlert({ msg: message, type });
+    setTimeout(() => setAlert(null), 2500);
   };
+
   const submitHandler = async (e) => {
     e.preventDefault();
     try {
       const response = await fetch("api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" }, // ✅ FIXED here
-        body: JSON.stringify({
-          email: credentials.email,
-          password: credentials.password,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
       });
 
       const res = await response.json();
 
       if (res.success) {
         localStorage.setItem("token", res.authtoken);
-
         showAlert("Logged In Successfully!", "success");
         setCredentials({ email: "", password: "" });
         router.replace(callbackUrl);
       } else {
-        showAlert(res.error ? res.error : "Something went wrong!", "danger");
+        showAlert(res.error || "Something went wrong!", "danger");
       }
     } catch (error) {
-      showAlert(
-        error instanceof Object && error.message
-          ? error.message
-          : error
-          ? error
-          : "Something went wrong!",
-        "danger"
-      );
+      showAlert(error?.message || "Something went wrong!", "danger");
     }
   };
 
@@ -71,66 +53,69 @@ const Login = () => {
   };
 
   return (
-    <section className="h-screen">
+    <section className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <Alert alert={alert} showAlert={showAlert} />
-      <div className="h-full mt-8 p-8  rounded-md">
-        <div className="g-6 flex h-full flex-wrap mx-auto items-center w-2/3  justify-center lg:justify-between">
-          <div className="shrink-1 mb-12 grow-0 basis-auto md:mb-0 md:w-9/12 md:shrink-0 lg:w-6/12 xl:w-6/12">
-            <img src="/st-bg.png" className="w-full" alt="Sample image" />
-          </div>
+      <div className="w-full max-w-6xl bg-white shadow-lg rounded-lg overflow-hidden grid md:grid-cols-2">
+        <div className="hidden md:block">
+          <img src="/st-bg.png" alt="Login" className="h-full w-full object-cover" />
+        </div>
 
-          <div className="mb-12 md:mb-0 md:w-8/12 lg:w-5/12 xl:w-5/12">
-            <form onSubmit={submitHandler}>
-              <div className="relative mb-6">
-                <label className="">Email address</label>
-                <input
-                  className="peer block min-h-[auto] w-full rounded  bg-white px-3 py-[0.32rem] leading-[2.15] outline-none"
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={credentials?.email || ""}
-                  onChange={onChange}
-                  placeholder="Enter email"
-                />
-              </div>
+        <div className="p-8 sm:p-12">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">Welcome Back</h2>
 
-              <div className="relative mb-6">
-                <label className="">Password</label>
-                <input
-                  type={inputType}
-                  className="peer block min-h-[auto] w-full rounded  bg-white px-3 py-[0.32rem] leading-[2.15] outline-none"
-                  value={credentials?.password || ""}
-                  name="password"
-                  id="password"
-                  placeholder="Password"
-                  onChange={onChange}
-                />
-              </div>
+          <form onSubmit={submitHandler}>
+            <div className="mb-4">
+              <label className="block mb-1 text-sm font-medium text-gray-700">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={credentials.email}
+                onChange={onChange}
+                className="w-full border rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="Enter your email"
+              />
+            </div>
 
-              <div className="flex mb-4">
-                <input type="checkbox" id="checkbox" onChange={changeInputType} />
-                <p className="ml-4">Show Password</p>
-              </div>
+            <div className="mb-4">
+              <label className="block mb-1 text-sm font-medium text-gray-700">Password</label>
+              <input
+                type={inputType}
+                id="password"
+                name="password"
+                value={credentials.password}
+                onChange={onChange}
+                className="w-full border rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="Enter your password"
+              />
+            </div>
 
-              <div className="text-center lg:text-left">
-                <button
-                  className="inline-block rounded shadow-md bg-slate-900 hover:bg-[#2ff9c6] active:animate-ping hover:text-black px-7 pb-2.5 pt-3 text-sm font-medium uppercase leading-normal text-white  focus:outline-none"
-                  type="submit"
-                >
-                  Sign in
-                </button>
+            <div className="flex items-center mb-6">
+              <input
+                type="checkbox"
+                id="showPassword"
+                onChange={changeInputType}
+                className="mr-2"
+              />
+              <label htmlFor="showPassword" className="text-sm text-gray-600">
+                Show Password
+              </label>
+            </div>
 
-                <p className="mb-0 mt-2 pt-1 text-sm font-semibold">
-                  Don't have an account?{" "}
-                  <Link href="/signup">
-                    <span className=" text-green-400 active:text-white ">
-                      Register Now
-                    </span>
-                  </Link>
-                </p>
-              </div>
-            </form>
-          </div>
+            <button
+              type="submit"
+              className="w-full bg-slate-900 hover:bg-[#2ff9c6] hover:text-black transition-colors text-white py-2.5 rounded font-medium shadow-md"
+            >
+              Sign In
+            </button>
+
+            <p className="mt-6 text-sm text-center">
+              Don't have an account?{" "}
+              <Link href="/signup" className="text-green-500 hover:underline">
+                Register Now
+              </Link>
+            </p>
+          </form>
         </div>
       </div>
     </section>
