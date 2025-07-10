@@ -1,15 +1,142 @@
 "use client";
-import { useSearchParams } from "next/navigation";
 
-export default function LoginClient() {
+import Link from "next/link";
+import React, { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Alert from "@/components/Alert";
+
+Alert;
+const Login = () => {
+  const [credentials, setCredentials] = useState({ email: "", password: "" });
+  const [alert, setAlert] = useState(null);
+  const [inputType, setInputType] = useState("password");
+
+  const changeInputType = () => {
+    if (inputType === "password") {
+      setInputType("text");
+    } else if (inputType === "text") {
+      setInputType("password");
+    }
+  };
+
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const error = searchParams.get("error");
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
+  const showAlert = (message, type) => {
+    setAlert({
+      msg: message,
+      type: type,
+    });
+    setTimeout(() => {
+      setAlert(null);
+    }, 2500);
+  };
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch("api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }, // ✅ FIXED
+        body: JSON.stringify({
+          email: credentials.email,
+          password: credentials.password,
+        }),
+      });
+
+      const res = await response.json();
+
+      if (res.success) {
+        localStorage.setItem("token", res.authtoken);
+
+        showAlert("Logged In Successfully!", "success");
+        setCredentials({ email: "", password: "" });
+        router.replace(callbackUrl);
+      } else {
+        showAlert(res.error ? res.error : "Something went wrong!", "danger");
+      }
+    } catch (error) {
+      showAlert(
+        error instanceof Object && error.message
+          ? error.message
+          : error
+          ? error
+          : "Something went wrong!",
+        "danger"
+      );
+    }
+  };
+
+  const onChange = (e) => {
+    setCredentials({ ...credentials, [e.target.name]: e.target.value });
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <h1 className="text-2xl font-semibold mb-4">Login</h1>
-      {error && <p className="text-red-500 mb-2">Login failed: {error}</p>}
-      {/* Your login form goes here */}
-    </div>
+    <section className="h-screen">
+      <Alert alert={alert} showAlert={showAlert} />
+      <div className="h-full mt-8 p-8 rounded-md">
+        <div className="g-6 flex h-full flex-wrap mx-auto items-center w-2/3 justify-center lg:justify-between">
+          <div className="shrink-1 mb-12 grow-0 basis-auto md:mb-0 md:w-9/12 md:shrink-0 lg:w-6/12 xl:w-6/12">
+            <img src="/st-bg.png" className="w-full" alt="Sample image" />
+          </div>
+
+          <div className="mb-12 md:mb-0 md:w-8/12 lg:w-5/12 xl:w-5/12">
+            <form onSubmit={submitHandler}>
+              <div className="relative mb-6">
+                <label className="">Email address</label>
+                <input
+                  className="peer block min-h-[auto] w-full rounded bg-white px-3 py-[0.32rem] leading-[2.15] outline-none"
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={credentials?.email || ""}
+                  onChange={onChange}
+                  placeholder="Enter email"
+                />
+              </div>
+
+              <div className="relative mb-6">
+                <label className="">Password</label>
+                <input
+                  type={inputType}
+                  className="peer block min-h-[auto] w-full rounded bg-white px-3 py-[0.32rem] leading-[2.15] outline-none"
+                  value={credentials?.password || ""}
+                  name="password"
+                  id="password"
+                  placeholder="Password"
+                  onChange={onChange}
+                />
+              </div>
+
+              <div className="flex mb-4">
+                <input type="checkbox" id="checkbox" onChange={changeInputType} />
+                <p className="ml-4">Show Password</p>
+              </div>
+
+              <div className="text-center lg:text-left">
+                <button
+                  className="inline-block rounded shadow-md bg-slate-900 hover:bg-[#2ff9c6] active:animate-ping hover:text-black px-7 pb-2.5 pt-3 text-sm font-medium uppercase leading-normal text-white focus:outline-none"
+                  type="submit"
+                >
+                  Sign in
+                </button>
+
+                <p className="mb-0 mt-2 pt-1 text-sm font-semibold">
+                  Don't have an account?{" "}
+                  <Link href="/signup">
+                    <span className="text-green-400 active:text-white">
+                      Register Now
+                    </span>
+                  </Link>
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
   );
-}
+};
+
+export default Login;
