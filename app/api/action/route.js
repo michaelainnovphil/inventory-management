@@ -1,4 +1,5 @@
-import connectToMongo from "/db/models/dbConnect";
+import connectToMongo from '../../../db/dbConnect';
+
 import Product from "/db/models/Products";
 import { verify } from "jsonwebtoken";
 import { NextResponse } from "next/server";

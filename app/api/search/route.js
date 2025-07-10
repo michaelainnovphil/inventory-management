@@ -1,5 +1,6 @@
 // pages/api/search.js (or route handler)
-import connectToMongo from "/db/models/dbConnect";
+import connectToMongo from '../../../db/dbConnect';
+
 import Product from "/db/models/Products";
 import { verify } from "jsonwebtoken";
 
