@@ -879,6 +879,9 @@ const pieChartData = {
   </div>
 )}
 
+
+
+
       {showModal && selectedProduct && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
@@ -950,6 +953,8 @@ const pieChartData = {
           ↑ Top
         </button>
       )}
+
+      
 
       {showDeleteModal && productToDelete && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
