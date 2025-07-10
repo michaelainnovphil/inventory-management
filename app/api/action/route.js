@@ -1,8 +1,8 @@
 import connectToMongo from '../../../db/dbConnect';
-
 import Product from "/db/models/Products";
 import { verify } from "jsonwebtoken";
 import { NextResponse } from "next/server";
+
 export async function POST(request) {
   const requestHeaders = new Headers(request.headers);
   const token = requestHeaders.get("auth-token");

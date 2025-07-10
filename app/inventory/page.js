@@ -612,7 +612,7 @@ const pieChartData = {
       ).map(([issuedTo, group]) => (
         <React.Fragment key={issuedTo}>
           <tr className="bg-orange-500 text-white">
-            <td colSpan="10" className="px-5 py-3 font-semibold">
+            <td colSpan="12" className="px-5 py-3 font-semibold">
               {issuedTo}
             </td>
           </tr>
