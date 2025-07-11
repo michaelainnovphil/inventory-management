@@ -4,151 +4,125 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Alert from "@/components/Alert";
-import ButtonPrimary from "../../../components/ButtonPrimary";
 
 const Signup = () => {
   const [alert, setAlert] = useState(null);
-  const [inputType, setInputType] = useState("password")
-
-  const changeInputType = () => {
-    if (inputType == "password") {
-      setInputType("text")
-    } else if (inputType == "text") {
-      setInputType("password")
-    }
-  }
+  const [inputType, setInputType] = useState("password");
   const [credentials, setCredentials] = useState({
     name: "",
     email: "",
     password: "",
   });
   const router = useRouter();
-  const showAlert = (message, type) => {
-    setAlert({
-      msg: message,
-      type: type,
-    });
-    setTimeout(() => {
-      setAlert(null);
-    }, 2500);
+
+  const showAlert = (msg, type) => {
+    setAlert({ msg, type });
+    setTimeout(() => setAlert(null), 2500);
   };
-  const onChange = (e) => {
-    setCredentials({ ...credentials, [e.target.name]: e.target.value });
-  };
-  const { name, email, password } = credentials;
+
+  const onChange = (e) =>
+    setCredentials(prev => ({ ...prev, [e.target.name]: e.target.value }));
+
   const submitHandler = async (e) => {
     e.preventDefault();
-
     try {
-      const response = await fetch("api/auth/signup", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, email, password }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
       });
-      const res = await response.json();
+      const data = await res.json();
 
-      if (res?.success) {
-        showAlert("Account Created Successful!", "success");
-        localStorage.setItem("token", res.authtoken);
-
+      if (data.success) {
+        localStorage.setItem("token", data.authtoken);
+        showAlert("Account created successfully!", "success");
         setCredentials({ name: "", email: "", password: "" });
-        //router.push("/");
-        return;
+        router.replace("/dashboard");
       } else {
-        showAlert(res.error ? res.error : "Something went wrong!", "danger");
-        setCredentials({ name: "", email: "", password: "" });
-        // router.push("/login");
-        return;
+        showAlert(data.error || "Signup failed!", "danger");
       }
-    } catch (error) {
-      showAlert(
-        error instanceof Object && error.message
-          ? error.message
-          : error
-            ? error
-            : "Something went wrong!",
-        "danger"
-      );
+    } catch (err) {
+      showAlert(err.message || "Something went wrong!", "danger");
     }
   };
+
+  const togglePassword = () =>
+    setInputType(prev => (prev === "password" ? "text" : "password"));
 
   return (
     <section className="h-screen">
       <Alert alert={alert} showAlert={showAlert} />
-
-      <div className="h-full mt-8 p-8  rounded-md">
-        <div className="g-6 flex h-full flex-wrap mx-auto items-center w-2/3  justify-center lg:justify-between">
-          <div className="shrink-1 mb-8 grow-0 basis-auto md:mb-0 md:w-9/12 md:shrink-0 lg:w-6/12 xl:w-6/12">
-            <img src="/signup-bg.jpg" className="w-full border rounded-3xl" alt="Sample image" />
+      <div className="h-full mt-8 p-8 rounded-md">
+        <div className="g-6 flex h-full flex-wrap mx-auto items-center w-2/3 justify-center lg:justify-between">
+          <div className="shrink-1 mb-12 grow-0 basis-auto md:w-6/12">
+            <img src="/signup-bg.jpg" alt="Signup" className="w-full rounded-lg" />
           </div>
-
-          <div className="mb-12 md:mb-0 md:w-8/12 lg:w-5/12 xl:w-5/12">
-            <form onSubmit={submitHandler}>
-              <div className="relative mb-6">
-                <label className="" htmlFor="name">Name</label>
+          <div className="md:w-5/12">
+            <form onSubmit={submitHandler} className="space-y-6">
+              <div>
+                <label htmlFor="name" className="block mb-1 font-medium">Name</label>
                 <input
-                  className="peer block min-h-[auto] w-full rounded  bg-white px-3 py-[0.32rem] leading-[2.15] outline-none"
-                  type="text"
                   id="name"
-                  required={true}
                   name="name"
-                  value={credentials?.name || ""}
+                  type="text"
+                  required
+                  value={credentials.name}
                   onChange={onChange}
-                  placeholder="Enter your name"
+                  placeholder="Your name"
+                  className="w-full rounded bg-white px-3 py-2 outline-none"
                 />
               </div>
-
-
-              <div className="relative mb-6">
-                <label className="" htmlFor="email">Email</label>
+              <div>
+                <label htmlFor="email" className="block mb-1 font-medium">Email Address</label>
                 <input
-                  className="peer block min-h-[auto] w-full rounded  bg-white px-3 py-[0.32rem] leading-[2.15] outline-none"
-                  type="email"
                   id="email"
                   name="email"
-                  value={credentials?.email || ""}
+                  type="email"
+                  required
+                  value={credentials.email}
                   onChange={onChange}
-                  placeholder="Enter your email"
+                  placeholder="you@example.com"
+                  className="w-full rounded bg-white px-3 py-2 outline-none"
                 />
               </div>
-
-              <div className="relative mb-6">
-                <label className="" htmlFor="password">Password</label>
+              <div>
+                <label htmlFor="password" className="block mb-1 font-medium">Password</label>
                 <input
-                  type={inputType}
-                  className="peer block min-h-[auto] w-full rounded  bg-white px-3 py-[0.32rem] leading-[2.15] outline-none"
-                  value={credentials?.password || ""}
-                  name="password"
                   id="password"
-                  placeholder="Create a Password"
-                  onChange={onChange}
+                  name="password"
+                  type={inputType}
+                  required
                   minLength={5}
+                  value={credentials.password}
+                  onChange={onChange}
+                  placeholder="Create a password"
+                  className="w-full rounded bg-white px-3 py-2 outline-none"
                 />
               </div>
-
-              <div className="flex mb-4">
-                <input type="checkbox" id="checkbox" onChange={changeInputType} />
-                <p className="ml-4">Show Password</p>
+              <div className="flex items-center">
+                <input
+                  id="showPass"
+                  type="checkbox"
+                  checked={inputType === "text"}
+                  onChange={togglePassword}
+                  className="mr-2"
+                />
+                <label htmlFor="showPass">Show Password</label>
               </div>
-
-              <div className="text-center lg:text-left">
+              <div>
                 <button
-                  className="inline-block rounded shadow-md bg-slate-900 hover:bg-primary active:animate-ping hover:text-white px-7 pb-2.5 pt-3 text-sm font-medium uppercase leading-normal text-white  focus:outline-none"
                   type="submit"
+                  className="w-full bg-slate-900 text-white px-7 py-3 rounded shadow hover:bg-[#2ff9c6] hover:text-black transition-colors"
                 >
                   Sign Up
                 </button>
-
-                <p className="mb-0 mt-2 pt-1 text-sm font-semibold">
-                  Already have an account ?
-                  <Link href="/login">
-                    <span className=" text-blue-700 hover:text-blue-500 active:text-white "> Please login
-                    </span>
-                  </Link>
-                </p>
               </div>
+              <p className="text-center text-sm">
+                Already have an account?{" "}
+                <Link href="/login">
+                  <span className="text-blue-600 hover:underline">Login here</span>
+                </Link>
+              </p>
             </form>
           </div>
         </div>
