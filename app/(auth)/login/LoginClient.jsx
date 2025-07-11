@@ -104,14 +104,14 @@ const Login = () => {
 
             <button
               type="submit"
-              className="w-full bg-slate-900 hover:bg-[#2ff9c6] hover:text-black transition-colors text-white py-2.5 rounded font-medium shadow-md"
+              className="w-full bg-slate-900 hover:bg-primary hover:text-white transition-colors text-white py-2.5 rounded font-medium shadow-md"
             >
               Sign In
             </button>
 
             <p className="mt-6 text-sm text-center">
               Don't have an account?{" "}
-              <Link href="/signup" className="text-green-500 hover:underline">
+              <Link href="/signup" className="text-primary hover:underline">
                 Register Now
               </Link>
             </p>

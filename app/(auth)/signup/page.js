@@ -135,7 +135,7 @@ const Signup = () => {
 
               <div className="text-center lg:text-left">
                 <button
-                  className="inline-block rounded shadow-md bg-slate-900 hover:bg-[#2ff9c6] active:animate-ping hover:text-black px-7 pb-2.5 pt-3 text-sm font-medium uppercase leading-normal text-white  focus:outline-none"
+                  className="inline-block rounded shadow-md bg-slate-900 hover:bg-primary active:animate-ping hover:text-white px-7 pb-2.5 pt-3 text-sm font-medium uppercase leading-normal text-white  focus:outline-none"
                   type="submit"
                 >
                   Sign Up
@@ -144,7 +144,7 @@ const Signup = () => {
                 <p className="mb-0 mt-2 pt-1 text-sm font-semibold">
                   Already have an account ?
                   <Link href="/login">
-                    <span className=" text-green-500 hover:text-green-600 active:text-white "> Please login
+                    <span className=" text-blue-700 hover:text-blue-500 active:text-white "> Please login
                     </span>
                   </Link>
                 </p>
