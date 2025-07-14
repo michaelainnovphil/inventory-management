@@ -9,7 +9,7 @@ import React from "react";
 import * as XLSX from "xlsx-js-style";
 import { saveAs } from "file-saver";
 import { Plus } from "lucide-react";
-import { getUserFromToken } from "@/utils/auth";
+import { getUserFromToken } from "/utils/auth.js";
 
 
 import {
