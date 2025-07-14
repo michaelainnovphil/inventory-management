@@ -75,85 +75,81 @@ const Signup = () => {
   };
 
   return (
-    <section className="h-screen">
-      <Alert alert={alert} showAlert={showAlert} />
+    <section className="h-screen flex items-center justify-center bg-gray-100">
+  <div className="container mx-auto flex flex-col lg:flex-row bg-white shadow-md rounded-xl overflow-hidden w-full max-w-5xl">
+    
+    {/* Left side image */}
+    <div className="lg:w-1/2 hidden lg:block">
+      <img
+        src="/signup-bg.jpg"
+        alt="Signup Visual"
+        className="h-full w-full object-cover"
+      />
+    </div>
 
-      <div className="h-full mt-8 p-8  rounded-md">
-        <div className="g-6 flex h-full flex-wrap mx-auto items-center w-2/3  justify-center lg:justify-between">
-          <div className="shrink-1 mb-8 grow-0 basis-auto md:mb-0 md:w-9/12 md:shrink-0 lg:w-6/12 xl:w-6/12">
-            <img src="/signup-bg.jpg" className="w-full border rounded-3xl" alt="Sample image" />
-          </div>
+    {/* Right side form */}
+    <div className="w-full lg:w-1/2 p-8 lg:p-12">
+      <h2 className="text-2xl font-bold mb-4 text-gray-800">Create an Account</h2>
+      <form onSubmit={submitHandler} className="space-y-5">
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            required
+            value={credentials.name}
+            onChange={onChange}
+            className="mt-1 w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
 
-          <div className="mb-12 md:mb-0 md:w-8/12 lg:w-5/12 xl:w-5/12">
-            <form onSubmit={submitHandler}>
-              <div className="relative mb-6">
-                <label className="" htmlFor="name">Name</label>
-                <input
-                  className="peer block min-h-[auto] w-full rounded  bg-white px-3 py-[0.32rem] leading-[2.15] outline-none"
-                  type="text"
-                  id="name"
-                  required={true}
-                  name="name"
-                  value={credentials?.name || ""}
-                  onChange={onChange}
-                  placeholder="Enter your name"
-                />
-              </div>
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={credentials.email}
+            onChange={onChange}
+            className="mt-1 w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
 
-
-              <div className="relative mb-6">
-                <label className="" htmlFor="email">Email</label>
-                <input
-                  className="peer block min-h-[auto] w-full rounded  bg-white px-3 py-[0.32rem] leading-[2.15] outline-none"
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={credentials?.email || ""}
-                  onChange={onChange}
-                  placeholder="Enter your email"
-                />
-              </div>
-
-              <div className="relative mb-6">
-                <label className="" htmlFor="password">Password</label>
-                <input
-                  type={inputType}
-                  className="peer block min-h-[auto] w-full rounded  bg-white px-3 py-[0.32rem] leading-[2.15] outline-none"
-                  value={credentials?.password || ""}
-                  name="password"
-                  id="password"
-                  placeholder="Create a Password"
-                  onChange={onChange}
-                  minLength={5}
-                />
-              </div>
-
-              <div className="flex mb-4">
-                <input type="checkbox" id="checkbox" onChange={changeInputType} />
-                <p className="ml-4">Show Password</p>
-              </div>
-
-              <div className="text-center lg:text-left">
-                <button
-                  className="inline-block rounded shadow-md bg-slate-900 hover:bg-primary active:animate-ping hover:text-white px-7 pb-2.5 pt-3 text-sm font-medium uppercase leading-normal text-white  focus:outline-none"
-                  type="submit"
-                >
-                  Sign Up
-                </button>
-
-                <p className="mb-0 mt-2 pt-1 text-sm font-semibold">
-                  Already have an account ?
-                  <Link href="/login">
-                    <span className=" text-blue-700 hover:text-blue-500 active:text-white "> Please login
-                    </span>
-                  </Link>
-                </p>
-              </div>
-            </form>
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+          <input
+            type={inputType}
+            id="password"
+            name="password"
+            minLength={5}
+            value={credentials.password}
+            onChange={onChange}
+            className="mt-1 w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+          <div className="mt-2 text-sm">
+            <input type="checkbox" onChange={changeInputType} /> Show Password
           </div>
         </div>
-      </div>
-    </section>
+
+        <button
+          type="submit"
+          className="w-full bg-primary hover:bg-secondary text-white py-2 px-4 rounded shadow"
+        >
+          Sign Up
+        </button>
+
+        <p className="text-sm text-center mt-4">
+          Already have an account?{" "}
+          <Link href="/login" className="text-primary hover:underline">
+            Login here
+          </Link>
+        </p>
+      </form>
+    </div>
+  </div>
+</section>
+
   );
 };
 
