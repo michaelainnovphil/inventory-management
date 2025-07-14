@@ -5,11 +5,11 @@ export function getUserFromToken() {
   if (!token) return null;
 
   try {
-    const base64Payload = token.split(".")[1];
-    const payload = JSON.parse(atob(base64Payload));
-    return payload.user; // Contains { id, role }
-  } catch (err) {
-    console.error("Failed to decode token:", err);
+    const base64Url = token.split(".")[1];
+    const decodedPayload = JSON.parse(atob(base64Url));
+    return decodedPayload.user; // ⬅️ includes id and role
+  } catch (error) {
+    console.error("Token decode failed:", error);
     return null;
   }
 }

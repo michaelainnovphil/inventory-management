@@ -77,6 +77,7 @@ const scrollToAndHighlight = (slug) => {
 
 useEffect(() => {
   const user = getUserFromToken();
+  console.log("Decoded user:", user);
   if (user) {
     setUserRole(user.role);
   }
