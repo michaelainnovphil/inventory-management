@@ -1,5 +1,5 @@
-import connectToMongo from '../../../db/dbConnect';
-import Product from "/db/models/Products";
+import connectToMongo from "@/db/dbConnect";
+import Product from "@/db/models/Products";
 import { verify } from "jsonwebtoken";
 import { NextResponse } from "next/server";
 
@@ -34,35 +34,30 @@ export async function POST(request) {
   const data = verify(token, process.env.JWT_SECRET);
   request.user = data.user;
 
+  // ✅ Restrict to admin only
+  if (request.user.role !== "admin") {
+    return new NextResponse(
+      JSON.stringify({ success: false, message: "Access denied. Admins only." }),
+      { status: 403, headers: { "content-type": "application/json" } }
+    );
+  }
+
   try {
     await connectToMongo();
     const body = await request.json();
     const { code, slug, serial, category, branch, issued, status, purchaseDate, quantity, price } = body;
 
-    // Optional: Prevent duplicate product codes
     const existing = await Product.findOne({ code, user: request.user.id });
     if (existing) {
       return new NextResponse(
-        JSON.stringify({
-          success: false,
-          message: "Product code already exists.",
-        }),
+        JSON.stringify({ success: false, message: "Product code already exists." }),
         { status: 400, headers: { "content-type": "application/json" } }
       );
     }
 
     const newProduct = new Product({
       user: request.user.id,
-      code,
-      slug,
-      serial,
-      category,
-      branch,
-      issued,
-      status,
-      purchaseDate,
-      quantity,
-      price,
+      code, slug, serial, category, branch, issued, status, purchaseDate, quantity, price,
     });
 
     await newProduct.save();
@@ -77,12 +72,21 @@ export async function POST(request) {
   }
 }
 
+
 // PUT: Update existing product
 export async function PUT(request) {
   const requestHeaders = new Headers(request.headers);
   const token = requestHeaders.get("auth-token");
   const data = verify(token, process.env.JWT_SECRET);
   request.user = data.user;
+
+  
+if (request.user.role !== "admin") {
+  return new NextResponse(
+    JSON.stringify({ success: false, message: "Access denied. Admins only." }),
+    { status: 403, headers: { "content-type": "application/json" } }
+  );
+}
 
   try {
     await connectToMongo();
@@ -132,6 +136,13 @@ export async function DELETE(request) {
     const token = requestHeaders.get("auth-token");
     const data = verify(token, process.env.JWT_SECRET);
     request.user = data.user;
+
+    if (request.user.role !== "admin") {
+      return new NextResponse(
+        JSON.stringify({ success: false, message: "Access denied. Admins only." }),
+        { status: 403, headers: { "content-type": "application/json" } }
+      );
+    }
 
     await connectToMongo();
 

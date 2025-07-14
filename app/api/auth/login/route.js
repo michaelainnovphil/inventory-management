@@ -12,7 +12,7 @@ export async function POST(request) {
       return new Response(JSON.stringify({ success: false, error: "Invalid credentials" }), { status: 400 });
     }
 
-    const authtoken = sign({ user: { id: user.id } }, process.env.JWT_SECRET);
+    const authtoken = sign({ user: { id: user.id, role: user.role, } }, process.env.JWT_SECRET);
     return new Response(JSON.stringify({ success: true, authtoken }));
   } catch (err) {
     return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });

@@ -1,5 +1,5 @@
 "use client";
-import Header from "/components/Header.js";
+import Header from "@/components/Header";
 import { useState, useEffect } from "react";
 import { MdDelete } from "react-icons/md";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import React from "react";
 import * as XLSX from "xlsx-js-style";
 import { saveAs } from "file-saver";
 import { Plus } from "lucide-react";
+import { getUserFromToken } from "@/utils/auth";
 
 
 import {
@@ -54,6 +55,8 @@ export default function Dashboard() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 const [productToDelete, setProductToDelete] = useState(null);
 const [showForm, setShowForm] = useState(false);
+const [userRole, setUserRole] = useState(null); 
+
 
 
 
@@ -72,6 +75,12 @@ const scrollToAndHighlight = (slug) => {
   }
 };
 
+useEffect(() => {
+  const user = getUserFromToken();
+  if (user) {
+    setUserRole(user.role);
+  }
+}, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -572,6 +581,7 @@ const pieChartData = {
       
 
 {/* Floating Button */}
+{userRole === "admin" && (
 <button
   onClick={() => setShowForm(true)}
   className="fixed bottom-6 right-6 bg-primary text-white w-14 h-14 flex items-center justify-center rounded-full shadow-2xl hover:bg-secondary transition duration-300 ease-in-out"
@@ -579,6 +589,7 @@ const pieChartData = {
 >
   <Plus className="w-6 h-6" />
 </button>
+)}
 
 
        {showForm && (

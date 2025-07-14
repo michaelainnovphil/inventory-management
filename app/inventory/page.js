@@ -1,5 +1,5 @@
 "use client";
-import Header from "/components/Header";
+import Header from "@/components/Header";
 import { useState, useEffect } from "react";
 import { MdDelete } from "react-icons/md";
 import { useRouter } from "next/navigation";
@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import React from "react";
 import * as XLSX from "xlsx-js-style";
 import { saveAs } from "file-saver";
+import { getUserFromToken } from "@/utils/auth";
 
 import {
   Chart as ChartJS,
@@ -48,6 +49,7 @@ export default function Dashboard() {
   const [highlightedRowId, setHighlightedRowId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 const [productToDelete, setProductToDelete] = useState(null);
+const [userRole, setUserRole] = useState(null);
 
   const router = useRouter();
   const productRefs = React.useRef({});
@@ -63,6 +65,12 @@ const scrollToAndHighlight = (slug) => {
     }, 3000); // Highlight for 3 seconds
   }
 };
+useEffect(() => {
+  const user = getUserFromToken();
+  if (user) {
+    setUserRole(user.role);
+  }
+}, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -612,7 +620,7 @@ const pieChartData = {
       ).map(([issuedTo, group]) => (
         <React.Fragment key={issuedTo}>
           <tr className="bg-orange-500 text-white">
-            <td colSpan="12" className="px-5 py-3 font-semibold">
+            <td colSpan="10" className="px-5 py-3 font-semibold">
               {issuedTo}
             </td>
           </tr>
@@ -915,6 +923,8 @@ const pieChartData = {
         >
           Close
         </button>
+
+        {userRole === "admin" && (
         <button
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
           onClick={() => {
@@ -940,6 +950,7 @@ const pieChartData = {
               >
                 Edit
               </button>
+        )}
             </div>
           </div>
         </div>
