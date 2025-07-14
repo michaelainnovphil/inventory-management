@@ -1,15 +1,9 @@
 export function getUserFromToken() {
-  if (typeof window === "undefined") return null;
-
-  const token = localStorage.getItem("token");
-  if (!token) return null;
-
+  const t = typeof window !== "undefined" && localStorage.getItem("token");
+  if (!t) return null;
   try {
-    const base64Url = token.split(".")[1];
-    const decodedPayload = JSON.parse(atob(base64Url));
-    return decodedPayload.user; // ⬅️ includes id and role
-  } catch (error) {
-    console.error("Token decode failed:", error);
+    return JSON.parse(atob(t.split(".")[1])).user;
+  } catch {
     return null;
   }
 }
