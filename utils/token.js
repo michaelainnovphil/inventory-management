@@ -2,7 +2,7 @@ import { verify, sign } from 'jsonwebtoken';
 
 const secretKey = process.env.NEXTAUTH_SECRET;
 export const generateAccessToken = (user) => {
-  const token = sign({ sub: user._id }, secretKey, { expiresIn: '6d' });
+  const token = sign({ sub: user._id, role: user.role }, secretKey, { expiresIn: '6d' });
   return token;
 };
 
@@ -26,7 +26,7 @@ export const getAccessToken = () => {
 
 export const saveAccessToken = (accessToken) => {
   if (typeof window !== 'undefined' && typeof accessToken !== 'undefined') {
-    localStorage.setItem('token', 'Bearer ' + accessToken);
+    localStorage.setItem('token',  accessToken);
   }
 }
 
