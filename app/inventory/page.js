@@ -589,17 +589,18 @@ const pieChartData = {
           {/* Quantity Controls */}
           <div className="mt-2 flex items-center gap-2">
             <button
-              onClick={() => updateQuantity(item.slug, "minus")}
+              onClick={() => buttonAction("minus", item.slug, item.quantity)}
               className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 text-xs rounded"
             >
               –
             </button>
             <button
-              onClick={() => updateQuantity(item.slug, "plus")}
+              onClick={() => buttonAction("plus", item.slug, item.quantity)}
               className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 text-xs rounded"
             >
               +
             </button>
+
           </div>
         </div>
       );
