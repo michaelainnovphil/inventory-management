@@ -78,13 +78,14 @@ const scrollToAndHighlight = (slug) => {
 
 useEffect(() => {
   const user = getUserFromToken();
-  console.log("Decoded user:", user);
-  if (user?.user?.role) {
-    setUserRole(user.user.role);
+  console.log("🔍 Extracted user from token:", user);
+  if (user?.role) {
+    setUserRole(user.role);
   } else {
     setUserRole(null);
   }
 }, []);
+
 
 
 
