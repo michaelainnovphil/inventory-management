@@ -7,7 +7,7 @@ export async function POST(request) {
   try {
     await connectToMongo();
     const { email, password } = await request.json();
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email }).select("+password role");
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return new Response(JSON.stringify({ success: false, error: "Invalid credentials" }), { status: 400 });
     }
