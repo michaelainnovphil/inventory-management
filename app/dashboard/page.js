@@ -529,9 +529,7 @@ const pieChartData = {
   ],
 };
 
-<p className="text-sm text-red-600 font-mono">
-  Current Role: {userRole || "none"}
-</p>
+
 
 
 
@@ -586,6 +584,10 @@ const pieChartData = {
     <div className="mt-8 text-center font-bold text-xl text-gray-800">
       📦 Overall Total Inventory: <span className="text-primary">{totalInventory}</span>
     </div>
+
+    <p className="text-sm text-red-600 font-mono">
+  Current Role: {userRole || "none"}
+</p>
   </div>
 </div>
 
