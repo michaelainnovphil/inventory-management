@@ -266,7 +266,42 @@ useEffect(() => {
   return [yearText, monthText].filter(Boolean).join(" ") || "0 months";
 };
 
-const updateQuantity = async (slug, action) => {
+const updateQuantity = async (slug, action, currentQty) => {
+  // 1. Update dropdown visually
+  const newDropdown = dropdown.map((item) => {
+    if (item.slug === slug) {
+      return {
+        ...item,
+        quantity:
+          action === "plus"
+            ? item.quantity + 1
+            : item.quantity > 0
+            ? item.quantity - 1
+            : 0,
+      };
+    }
+    return item;
+  });
+  setDropdown(newDropdown);
+
+  // 2. Update products visually
+  const newProducts = products.map((item) => {
+    if (item.slug === slug) {
+      return {
+        ...item,
+        quantity:
+          action === "plus"
+            ? item.quantity + 1
+            : item.quantity > 0
+            ? item.quantity - 1
+            : 0,
+      };
+    }
+    return item;
+  });
+  setProducts(newProducts);
+
+  // 3. Update the backend
   try {
     const res = await fetch("/api/action", {
       method: "POST",
@@ -274,29 +309,18 @@ const updateQuantity = async (slug, action) => {
         "Content-Type": "application/json",
         "auth-token": localStorage.getItem("token"),
       },
-      body: JSON.stringify({ slug, action }),
+      body: JSON.stringify({ action, slug, initialQuantity: currentQty }),
     });
 
-    const data = await res.json();
-    if (data.success) {
-      toast.success(`Quantity ${action === "plus" ? "increased" : "decreased"}`);
-
-      // Optional: Refresh dropdown data
-      const refreshed = await fetch(`/api/search?query=${slug}`, {
-        headers: {
-          "Content-Type": "application/json",
-          "auth-token": localStorage.getItem("token"),
-        },
-      });
-      const refreshedJson = await refreshed.json();
-      setDropdown(refreshedJson.products);
-    } else {
-      toast.error(data.message || "Failed to update quantity");
+    const result = await res.json();
+    if (!result.success) {
+      toast.error("Failed to update in DB.");
     }
   } catch (err) {
-    toast.error("Something went wrong");
+    toast.error("Server error.");
   }
 };
+
 
 
   // Fetch all products again to sync back
