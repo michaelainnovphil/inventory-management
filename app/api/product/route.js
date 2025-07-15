@@ -35,12 +35,12 @@ export async function POST(request) {
   request.user = data.user;
 
   // ✅ Restrict to admin only
-  if (request.user.role !== "admin") {
+  {/* if (request.user.role !== "admin") {
     return new NextResponse(
       JSON.stringify({ success: false, message: "Access denied. Admins only." }),
       { status: 403, headers: { "content-type": "application/json" } }
     );
-  }
+  } */}
 
   try {
     await connectToMongo();
@@ -81,12 +81,14 @@ export async function PUT(request) {
   request.user = data.user;
 
   
-if (request.user.role !== "admin") {
+{/* 
+  if (request.user.role !== "admin") {
   return new NextResponse(
     JSON.stringify({ success: false, message: "Access denied. Admins only." }),
     { status: 403, headers: { "content-type": "application/json" } }
   );
-}
+} 
+*/}
 
   try {
     await connectToMongo();
@@ -137,12 +139,15 @@ export async function DELETE(request) {
     const data = verify(token, process.env.JWT_SECRET);
     request.user = data.user;
 
+    
+    {/*
     if (request.user.role !== "admin") {
       return new NextResponse(
         JSON.stringify({ success: false, message: "Access denied. Admins only." }),
         { status: 403, headers: { "content-type": "application/json" } }
       );
     }
+    */}
 
     await connectToMongo();
 
