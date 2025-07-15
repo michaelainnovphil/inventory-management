@@ -46,18 +46,7 @@ const ProductsSchema = new Schema({
   purchaseDate: {
   type: Date,
   required: false,
-  },
-  bookCount: {
-  type: Number,
-  required: true,
-  default: 0,
-  },
-  actualCount: {
-    type: Number,
-    required: true,
-    default: 0,
-  },
-
+}
 
 });
 
