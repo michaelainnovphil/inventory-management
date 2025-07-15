@@ -708,7 +708,10 @@ const pieChartData = {
           type="date"
           id="purchaseDate"
           name="purchaseDate"
-          value={productForm.purchaseDate || ""}
+          value={
+            productForm.purchaseDate
+          ? new Date(productForm.purchaseDate).toISOString().split("T")[0]
+          : ""}
           onChange={handleChange}
           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary"
         />
