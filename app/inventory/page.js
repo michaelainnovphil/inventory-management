@@ -891,44 +891,64 @@ const pieChartData = {
 
 
       {showModal && selectedProduct && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-      <h2 className="text-xl font-bold mb-4">Product Details</h2>
-      <p>
-  <strong>Date:</strong>{" "}
-  {selectedProduct.purchaseDate
-    ? new Date(selectedProduct.purchaseDate).toISOString().split("T")[0]
-    : "—"}
-</p>
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative animate-fade-in">
+      {/* Close Button */}
+      <button
+        className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl"
+        onClick={() => setShowModal(false)}
+        aria-label="Close modal"
+      >
+        &times;
+      </button>
 
-      <p><strong>Asset Name:</strong> {selectedProduct.slug}</p>
-      <p><strong>Serial:</strong> {selectedProduct.serial}</p>
-      <p><strong>Category:</strong> {selectedProduct.category}</p>
-      <p><strong>Branch:</strong> {selectedProduct.branch}</p>
-      <p><strong>Issued To:</strong> {Array.isArray(selectedProduct.issued) ? selectedProduct.issued.join(", ") : selectedProduct.issued}</p>
-      <p><strong>Status:</strong> {selectedProduct.status}</p>
-      <p>
-  <strong>Date:</strong>{" "}
-  {selectedProduct.purchaseDate
-    ? new Date(selectedProduct.purchaseDate).toISOString().split("T")[0]
-    : "—"}
-</p>
-      <p><strong>Quantity:</strong> {selectedProduct.quantity}</p>
-      <p><strong>Price:</strong> ₱{selectedProduct.price}</p>
+      <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">
+        🧾 Product Details
+      </h2>
 
-      <div className="flex justify-end mt-4 gap-2">
+      <div className="space-y-3 text-sm text-gray-700">
+        <Detail label="Asset Name" value={selectedProduct.slug} />
+        <Detail label="Serial" value={selectedProduct.serial} />
+        <Detail label="Category" value={selectedProduct.category} />
+        <Detail label="Branch" value={selectedProduct.branch} />
+        <Detail
+          label="Issued To"
+          value={
+            Array.isArray(selectedProduct.issued)
+              ? selectedProduct.issued.join(", ")
+              : selectedProduct.issued || "—"
+          }
+        />
+        <Detail label="Status" value={selectedProduct.status} />
+        <Detail
+          label="Purchase Date"
+          value={
+            selectedProduct.purchaseDate
+              ? new Date(selectedProduct.purchaseDate).toLocaleDateString()
+              : "—"
+          }
+        />
+        <Detail label="Quantity" value={selectedProduct.quantity} />
+        <Detail
+          label="Price"
+          value={
+            selectedProduct.price
+              ? `₱${parseFloat(selectedProduct.price).toLocaleString()}`
+              : "—"
+          }
+        />
+      </div>
+
+      <div className="mt-6 flex justify-end gap-3">
         <button
-          className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded"
+          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg transition"
           onClick={() => setShowModal(false)}
         >
           Close
         </button>
 
-        {/*
-        {userRole === "admin" && (
-        */}
         <button
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
           onClick={() => {
             setProductForm({
               code: selectedProduct.code,
@@ -944,19 +964,19 @@ const pieChartData = {
               status: selectedProduct.status,
               purchaseDate: selectedProduct.purchaseDate,
             });
-            setIsEditing(true); // enable edit mode
-            setEditingProductId(selectedProduct._id); // store product ID
+            setIsEditing(true);
+            setEditingProductId(selectedProduct._id);
             setShowModal(false);
             window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-              >
-                Edit
-              </button>
-        {/* )} */}
-            </div>
-          </div>
-        </div>
-      )}
+          }}
+        >
+          Edit
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     
       {showScrollTop && (
         <button
