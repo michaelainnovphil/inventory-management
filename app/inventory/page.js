@@ -152,28 +152,32 @@ useEffect(() => {
 };
 
   const buttonAction = async (action, slug, initialQuantity) => {
-    // Immediately change the quantity of the product with given slug in Products(only frontend)
-    let index = products.findIndex((item) => item.slug == slug);
-    let newProducts = JSON.parse(JSON.stringify(products));
-    if (action == "plus") {
-      newProducts[index].quantity = parseInt(initialQuantity) + 1;
-    } else {
-      if (newProducts[index].quantity === 0) return;
-      newProducts[index].quantity = parseInt(initialQuantity) - 1;
-    }
-    setProducts(newProducts);
+  // Update products
+  let index = products.findIndex((item) => item.slug === slug);
+  let newProducts = [...products];
 
-    // Immediately change the quantity of the product with given slug in Dropdown
-    let indexdrop = dropdown.findIndex((item) => item.slug == slug);
-    let newDropdown = JSON.parse(JSON.stringify(dropdown));
-    if (action == "plus") {
-      newDropdown[indexdrop].quantity = parseInt(initialQuantity) + 1;
-    } else {
-      newDropdown[indexdrop].quantity = parseInt(initialQuantity) - 1;
-    }
-    setDropdown(newDropdown);
+  if (index !== -1) {
+    newProducts[index].quantity =
+      action === "plus"
+        ? parseInt(initialQuantity) + 1
+        : Math.max(0, parseInt(initialQuantity) - 1);
+  }
+  setProducts(newProducts);
 
-    setLoadingaction(true);
+  // 🔁 Update dropdown (for search)
+  let dropIndex = dropdown.findIndex((item) => item.slug === slug);
+  let newDropdown = [...dropdown];
+
+  if (dropIndex !== -1) {
+    newDropdown[dropIndex].quantity =
+      action === "plus"
+        ? parseInt(initialQuantity) + 1
+        : Math.max(0, parseInt(initialQuantity) - 1);
+  }
+  setDropdown(newDropdown);
+
+  // Call API to update database
+  try {
     const response = await fetch("/api/action", {
       method: "POST",
       headers: {
@@ -182,10 +186,16 @@ useEffect(() => {
       },
       body: JSON.stringify({ action, slug, initialQuantity }),
     });
-    let r = await response.json();
 
-    setLoadingaction(false);
-  };
+    const result = await response.json();
+    if (!result.success) {
+      toast.error("Failed to update quantity in the database.");
+    }
+  } catch (err) {
+    toast.error("Error updating quantity.");
+  }
+};
+
 
   const addProduct = async (e) => {
   e.preventDefault();
