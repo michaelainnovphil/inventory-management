@@ -529,6 +529,11 @@ const pieChartData = {
   ],
 };
 
+<p className="text-sm text-red-600 font-mono">
+  Current Role: {userRole || "none"}
+</p>
+
+
 
 
 
