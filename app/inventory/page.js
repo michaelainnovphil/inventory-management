@@ -152,31 +152,26 @@ useEffect(() => {
 };
 
   const buttonAction = async (action, slug, initialQuantity) => {
-  // Update products
-  let index = products.findIndex((item) => item.slug === slug);
-  let newProducts = [...products];
+  const updatedQuantity =
+    action === "plus"
+      ? parseInt(initialQuantity) + 1
+      : Math.max(0, parseInt(initialQuantity) - 1);
 
-  if (index !== -1) {
-    newProducts[index].quantity =
-      action === "plus"
-        ? parseInt(initialQuantity) + 1
-        : Math.max(0, parseInt(initialQuantity) - 1);
-  }
-  setProducts(newProducts);
+  // ✅ Update products (table)
+  setProducts((prev) =>
+    prev.map((item) =>
+      item.slug === slug ? { ...item, quantity: updatedQuantity } : item
+    )
+  );
 
-  // 🔁 Update dropdown (for search)
-  let dropIndex = dropdown.findIndex((item) => item.slug === slug);
-  let newDropdown = [...dropdown];
+  // ✅ Update dropdown (search results)
+  setDropdown((prev) =>
+    prev.map((item) =>
+      item.slug === slug ? { ...item, quantity: updatedQuantity } : item
+    )
+  );
 
-  if (dropIndex !== -1) {
-    newDropdown[dropIndex].quantity =
-      action === "plus"
-        ? parseInt(initialQuantity) + 1
-        : Math.max(0, parseInt(initialQuantity) - 1);
-  }
-  setDropdown(newDropdown);
-
-  // Call API to update database
+  // ⏳ Sync with backend
   try {
     const response = await fetch("/api/action", {
       method: "POST",
