@@ -256,6 +256,39 @@ useEffect(() => {
   return [yearText, monthText].filter(Boolean).join(" ") || "0 months";
 };
 
+const updateQuantity = async (slug, action) => {
+  try {
+    const res = await fetch("/api/action", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "auth-token": localStorage.getItem("token"),
+      },
+      body: JSON.stringify({ slug, action }),
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      toast.success(`Quantity ${action === "plus" ? "increased" : "decreased"}`);
+
+      // Optional: Refresh dropdown data
+      const refreshed = await fetch(`/api/search?query=${slug}`, {
+        headers: {
+          "Content-Type": "application/json",
+          "auth-token": localStorage.getItem("token"),
+        },
+      });
+      const refreshedJson = await refreshed.json();
+      setDropdown(refreshedJson.products);
+    } else {
+      toast.error(data.message || "Failed to update quantity");
+    }
+  } catch (err) {
+    toast.error("Something went wrong");
+  }
+};
+
+
   // Fetch all products again to sync back
   const response = await fetch("/api/product", {
     method: "GET",
@@ -535,27 +568,46 @@ const pieChartData = {
     <div className="dropcontainer absolute z-40 w-11/12 md:w-1/2 bg-white border border-gray-200 shadow-lg rounded-lg mt-2 overflow-y-auto max-h-60">
 
           {search &&
-            (dropdown.length > 0 ? (
-              dropdown.map((item) => {
-                return (
-                  <div
-            key={item.slug}
+  (dropdown.length > 0 ? (
+    dropdown.map((item) => {
+      return (
+        <div
+          key={item.slug}
+          className="cursor-pointer px-4 py-2 border-b hover:bg-primary/10 transition-colors"
+        >
+          <div
             onClick={() => scrollToAndHighlight(item.slug)}
-    className="cursor-pointer px-4 py-2 border-b hover:bg-primary/10 transition-colors"
+            className="font-semibold text-gray-800 text-sm md:text-base"
           >
-    <div className="font-semibold text-gray-800 text-sm md:text-base">
-              {item.slug} ({item.quantity} pcs) – ₱{item.price * item.quantity}
-            </div>
-    <div className="text-xs text-gray-500">
-              ID: {item.code} | Issued To:{" "}
-              {Array.isArray(item.issued) ? item.issued.join(", ") : item.issued || "N/A"}
-            </div>
+            {item.slug} ({item.quantity} pcs) – ₱{item.price * item.quantity}
           </div>
-                );
-              })
-            ) : (
-              <div> Not found.</div>
-            ))}
+          <div className="text-xs text-gray-500">
+            ID: {item.code} | Issued To:{" "}
+            {Array.isArray(item.issued) ? item.issued.join(", ") : item.issued || "N/A"}
+          </div>
+
+          {/* Quantity Controls */}
+          <div className="mt-2 flex items-center gap-2">
+            <button
+              onClick={() => updateQuantity(item.slug, "minus")}
+              className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 text-xs rounded"
+            >
+              –
+            </button>
+            <button
+              onClick={() => updateQuantity(item.slug, "plus")}
+              className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 text-xs rounded"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      );
+    })
+  ) : (
+    <div> Not found.</div>
+  ))}
+
         </div>
       </div>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-4 mb-4">
