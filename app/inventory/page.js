@@ -892,63 +892,65 @@ const pieChartData = {
 
       {showModal && selectedProduct && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative animate-fade-in">
-      {/* Close Button */}
-      <button
-        className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl"
-        onClick={() => setShowModal(false)}
-        aria-label="Close modal"
-      >
-        &times;
-      </button>
-
+    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">
         🧾 Product Details
       </h2>
 
-      <div className="space-y-3 text-sm text-gray-700">
-        <Detail label="Asset Name" value={selectedProduct.slug} />
-        <Detail label="Serial" value={selectedProduct.serial} />
-        <Detail label="Category" value={selectedProduct.category} />
-        <Detail label="Branch" value={selectedProduct.branch} />
-        <Detail
-          label="Issued To"
-          value={
-            Array.isArray(selectedProduct.issued)
-              ? selectedProduct.issued.join(", ")
-              : selectedProduct.issued || "—"
-          }
-        />
-        <Detail label="Status" value={selectedProduct.status} />
-        <Detail
-          label="Purchase Date"
-          value={
-            selectedProduct.purchaseDate
-              ? new Date(selectedProduct.purchaseDate).toLocaleDateString()
-              : "—"
-          }
-        />
-        <Detail label="Quantity" value={selectedProduct.quantity} />
-        <Detail
-          label="Price"
-          value={
-            selectedProduct.price
-              ? `₱${parseFloat(selectedProduct.price).toLocaleString()}`
-              : "—"
-          }
-        />
-      </div>
+      <p className="mb-2 text-sm text-gray-700">
+        <span className="font-medium text-gray-900">Date:</span>{" "}
+        {selectedProduct.purchaseDate
+          ? new Date(selectedProduct.purchaseDate).toISOString().split("T")[0]
+          : "—"}
+      </p>
 
-      <div className="mt-6 flex justify-end gap-3">
+      <p className="mb-2 text-sm text-gray-700">
+        <span className="font-medium text-gray-900">Asset Name:</span> {selectedProduct.slug}
+      </p>
+
+      <p className="mb-2 text-sm text-gray-700">
+        <span className="font-medium text-gray-900">Serial:</span> {selectedProduct.serial}
+      </p>
+
+      <p className="mb-2 text-sm text-gray-700">
+        <span className="font-medium text-gray-900">Category:</span> {selectedProduct.category}
+      </p>
+
+      <p className="mb-2 text-sm text-gray-700">
+        <span className="font-medium text-gray-900">Branch:</span> {selectedProduct.branch}
+      </p>
+
+      <p className="mb-2 text-sm text-gray-700">
+        <span className="font-medium text-gray-900">Issued To:</span>{" "}
+        {Array.isArray(selectedProduct.issued)
+          ? selectedProduct.issued.join(", ")
+          : selectedProduct.issued || "—"}
+      </p>
+
+      <p className="mb-2 text-sm text-gray-700">
+        <span className="font-medium text-gray-900">Status:</span> {selectedProduct.status}
+      </p>
+
+      <p className="mb-2 text-sm text-gray-700">
+        <span className="font-medium text-gray-900">Quantity:</span> {selectedProduct.quantity}
+      </p>
+
+      <p className="mb-2 text-sm text-gray-700">
+        <span className="font-medium text-gray-900">Price:</span> ₱
+        {parseFloat(selectedProduct.price || 0).toLocaleString()}
+      </p>
+
+      <div className="flex justify-end mt-6 gap-3">
         <button
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg transition"
+          className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium px-4 py-2 rounded-lg transition"
           onClick={() => setShowModal(false)}
         >
           Close
         </button>
 
+        {/* {userRole === "admin" && ( */}
         <button
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition"
           onClick={() => {
             setProductForm({
               code: selectedProduct.code,
@@ -972,6 +974,7 @@ const pieChartData = {
         >
           Edit
         </button>
+        {/* )} */}
       </div>
     </div>
   </div>
