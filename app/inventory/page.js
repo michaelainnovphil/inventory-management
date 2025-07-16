@@ -68,6 +68,7 @@ const scrollToAndHighlight = (slug) => {
     }, 3000); // Highlight for 3 seconds
   }
 };
+
 useEffect(() => {
   const user = getUserFromToken();
   if (user) {
@@ -357,12 +358,12 @@ const updateQuantity = async (slug, action, currentQty) => {
 
     const rjson = await response.json();
 
-    // ✅ Deduplicate by Product ID (code)
+    // ✅ Deduplicate by Product ID (code) and Asset Name (slug)
     const unique = [];
     const seenCodes = new Set();
 
     for (const item of rjson.products) {
-      if (!seenCodes.has(item.code)) {
+      if (!seenCodes.has(item.code) && (item.slug.toLowerCase().includes(value.toLowerCase()) || item.code.includes(value))) {
         seenCodes.add(item.code);
         unique.push(item);
       }
@@ -375,6 +376,7 @@ const updateQuantity = async (slug, action, currentQty) => {
     setDropdown([]);
   }
 };
+
 
 useEffect(() => {
   const handleClickOutside = (event) => {
