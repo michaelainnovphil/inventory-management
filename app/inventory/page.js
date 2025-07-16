@@ -354,12 +354,13 @@ const updateQuantity = async (slug, action, currentQty) => {
 
     const rjson = await response.json();
 
-    // ✅ Deduplicate by slug
+    // ✅ Deduplicate by Product ID (code)
     const unique = [];
-    const seen = new Set();
+    const seenCodes = new Set();
+
     for (const item of rjson.products) {
-      if (!seen.has(item.slug)) {
-        seen.add(item.slug);
+      if (!seenCodes.has(item.code)) {
+        seenCodes.add(item.code);
         unique.push(item);
       }
     }
@@ -371,6 +372,7 @@ const updateQuantity = async (slug, action, currentQty) => {
     setDropdown([]);
   }
 };
+
 
 
   // ---------------DELETE FUNCTION----------------
@@ -577,15 +579,17 @@ const pieChartData = {
         <div className="w-full col-span-1 md:col-span-2">
           <div className="container mx-auto w-full md:w-1/2  my-8  px-3 md:px-0">
         <h1 className="text-2xl md:text-3xl font-bold mb-4 text-gray-800">Search a Product</h1>
+        <div ref={wrapperRef} className="relative">
         <div className="flex rounded-lg shadow-sm overflow-hidden ring-1 ring-gray-300 focus-within:ring-2 focus-within:ring-primary mb-4">
 
           <input
             onChange={onDropdownEdit}
+            value={query}
             type="text"
             placeholder="Enter item"
-               className="flex-1 px-4 py-2 text-sm md:text-base bg-white text-gray-700 focus:outline-none"
-
+            className="flex-1 px-4 py-2 text-sm md:text-base bg-white text-gray-700 focus:outline-none"
           />
+
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -611,47 +615,57 @@ const pieChartData = {
     <div className="dropcontainer absolute z-40 w-11/12 md:w-1/2 bg-white border border-gray-200 shadow-lg rounded-lg mt-2 overflow-y-auto max-h-60">
 
           {search &&
-  (dropdown.length > 0 ? (
-    dropdown.map((item) => {
-      return (
-        <div
-          key={item.slug}
-          className="cursor-pointer px-4 py-2 border-b hover:bg-primary/10 transition-colors"
-        >
-          <div
-            onClick={() => scrollToAndHighlight(item.slug)}
-            className="font-semibold text-gray-800 text-sm md:text-base"
-          >
-            {item.slug} ({item.quantity} pcs) – ₱{item.price * item.quantity}
-          </div>
-          <div className="text-xs text-gray-500">
-            ID: {item.code} | Issued To:{" "}
-            {Array.isArray(item.issued) ? item.issued.join(", ") : item.issued || "N/A"}
-          </div>
+          (dropdown.length > 0 ? (
+            dropdown.map((item) => {
+              return (
+                <div
+                  key={item.slug}
+                  className="cursor-pointer px-4 py-2 border-b hover:bg-primary/10 transition-colors"
+                >
+                  <div
+                    onClick={() => {
+                scrollToAndHighlight(item.slug);
+                setSearch(false); // ✅ Close dropdown
+              }}
+                    className="font-semibold text-gray-800 text-sm md:text-base"
+                  >
+                    {item.slug} ({item.quantity} pcs) – ₱{item.price * item.quantity}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    ID: {item.code} | Issued To:{" "}
+                    {Array.isArray(item.issued) ? item.issued.join(", ") : item.issued || "N/A"}
+                  </div>
 
-          {/* Quantity Controls */}
-          <div className="mt-2 flex items-center gap-2">
-            <button
-              onClick={() => buttonAction("minus", item.slug, item.quantity)}
-              className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 text-xs rounded"
-            >
-              –
-            </button>
-            <button
-              onClick={() => buttonAction("plus", item.slug, item.quantity)}
-              className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 text-xs rounded"
-            >
-              +
-            </button>
+                  {/* Quantity Controls */}
+                  <div className="mt-2 flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                      e.stopPropagation(); // Don’t close dropdown
+                      buttonAction("minus", item.slug, item.quantity);
+                    }}
+                      className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 text-xs rounded"
+                    >
+                      –
+                    </button>
+                    <button
+                      onClick={(e) => {
+                      e.stopPropagation(); // Don’t close dropdown
+                      buttonAction("plus", item.slug, item.quantity);
+                    }}
+                      className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 text-xs rounded"
+                    >
+                      +
+                    </button>
 
-          </div>
-        </div>
+                  </div>
+                </div>
+                
       );
     })
   ) : (
     <div> Not found.</div>
   ))}
-
+          </div>
         </div>
       </div>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-4 mb-4">
