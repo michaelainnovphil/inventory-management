@@ -579,7 +579,7 @@ const pieChartData = {
       </div>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-4 mb-4">
     <div className="flex items-center gap-2">
-    <label htmlFor="groupToggle" className="font-medium text-gray-800">Group by Issued To</label>
+    <label htmlFor="groupToggle" className="font-medium text-gray-800">Group by Issuance</label>
     <input
       type="checkbox"
       id="groupToggle"
@@ -639,7 +639,7 @@ const pieChartData = {
       ).map(([issuedTo, group]) => (
         <React.Fragment key={issuedTo}>
           <tr className="bg-orange-500 text-white">
-            <td colSpan="10" className="px-5 py-3 font-semibold">
+            <td colSpan="12" className="px-5 py-3 font-semibold">
               {issuedTo}
             </td>
           </tr>
