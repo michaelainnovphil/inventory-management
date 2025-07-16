@@ -969,7 +969,7 @@ const pieChartData = {
 
         {/* {userRole === "admin" && ( */}
         <button
-          className="bg-primary-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition"
+          className="bg-primary hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition"
           onClick={() => {
             setProductForm({
               code: selectedProduct.code,
