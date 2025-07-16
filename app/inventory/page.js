@@ -274,23 +274,29 @@ useEffect(() => {
   };
 
   const onDropdownEdit = async (e) => {
-  let value = e.target.value;
-  setQuery(value);
+    let value = e.target.value;
+    setQuery(value);
+    if (value.length > 3) {
+      setSearch(true);
+      setLoading(true);
+      setDropdown([]);
+      const response = await fetch("/api/search?query=" + value, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "auth-token": localStorage.getItem("token"),
+        },
+      });
 
-  if (value.length > 3) {
-    setSearch(true);
-    setLoading(true);
-    setDropdown([]);
+      const rjson = await response.json();
+      setDropdown(rjson.products); // Directly set the products returned from the API
+      setLoading(false);
+        } else {
+          setSearch(false);
+          setDropdown([]);
+        }
+      };
 
-    const response = await fetch("/api/search?query=" + value, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "auth-token": localStorage.getItem("token"),
-      },
-    });
-
-    const rjson = await response.json();
 
     // ✅ Deduplicate by Product ID (code) and Asset Name (slug)
     const unique = [];
