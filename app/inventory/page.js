@@ -276,25 +276,42 @@ useEffect(() => {
   const onDropdownEdit = async (e) => {
     let value = e.target.value;
     setQuery(value);
+
     if (value.length > 3) {
-      setSearch(true);
-      setLoading(true);
-      setDropdown([]);
-      const response = await fetch("/api/search?query=" + value, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "auth-token": localStorage.getItem("token"),
-        },
-      });
-      const rjson = await response.json();
-      setDropdown(rjson.products); // Directly set the products returned from the API
-      setLoading(false);
+        setSearch(true);
+        setLoading(true);
+        setDropdown([]);
+
+        const response = await fetch("/api/search?query=" + value, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "auth-token": localStorage.getItem("token"),
+            },
+        });
+
+        const rjson = await response.json();
+
+        // ✅ Deduplicate by Product ID (code) and Asset Name (slug)
+        const unique = [];
+        const seenCodes = new Set();
+
+        for (const item of rjson.products) {
+            const matchesQuery = item.slug.toLowerCase().includes(value.toLowerCase()) || item.code.includes(value);
+            if (matchesQuery && !seenCodes.has(item.code)) {
+                seenCodes.add(item.code);
+                unique.push(item);
+            }
+        }
+
+        setDropdown(unique);
+        setLoading(false);
     } else {
-      setSearch(false);
-      setDropdown([]);
+        setSearch(false);
+        setDropdown([]);
     }
-  };
+};
+
 
 
 
