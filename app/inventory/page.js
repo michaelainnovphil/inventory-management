@@ -287,37 +287,15 @@ useEffect(() => {
           "auth-token": localStorage.getItem("token"),
         },
       });
-
       const rjson = await response.json();
       setDropdown(rjson.products); // Directly set the products returned from the API
       setLoading(false);
-        } else {
-          setSearch(false);
-          setDropdown([]);
-        }
-      };
-
-
-    // ✅ Deduplicate by Product ID (code) and Asset Name (slug)
-    const unique = [];
-    const seenCodes = new Set();
-
-    for (const item of rjson.products) {
-      // Check if the item matches the search query
-      const matchesQuery = item.slug.toLowerCase().includes(value.toLowerCase()) || item.code.includes(value);
-      if (matchesQuery && !seenCodes.has(item.code)) {
-        seenCodes.add(item.code);
-        unique.push(item);
-      }
+    } else {
+      setSearch(false);
+      setDropdown([]);
     }
+  };
 
-    setDropdown(unique);
-    setLoading(false);
-  } else {
-    setSearch(false);
-    setDropdown([]);
-  }
-};
 
 
 
