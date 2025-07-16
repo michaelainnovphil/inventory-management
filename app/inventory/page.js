@@ -698,7 +698,7 @@ const pieChartData = {
         })
         .map((product) => (
           <tr
-            ref={(el) => (productRefs.current[product.slug] = el)}
+            ref={(el) => (productRefs.current[product.code] = el)}
             key={product._id || product.code}
             onClick={() => openProductModal(product)}
             className="hover:bg-blue-50 transition cursor-pointer"
