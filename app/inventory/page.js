@@ -8,6 +8,7 @@ import React from "react";
 import * as XLSX from "xlsx-js-style";
 import { saveAs } from "file-saver";
 import { getUserFromToken } from "@/utils/auth";
+import { useRef } from "react";
 
 import {
   Chart as ChartJS,
@@ -50,6 +51,8 @@ export default function Dashboard() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 const [productToDelete, setProductToDelete] = useState(null);
 const [userRole, setUserRole] = useState(null);
+
+const wrapperRef = useRef();
 
   const router = useRouter();
   const productRefs = React.useRef({});
@@ -372,6 +375,19 @@ const updateQuantity = async (slug, action, currentQty) => {
     setDropdown([]);
   }
 };
+
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+      setSearch(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
 
 
 
