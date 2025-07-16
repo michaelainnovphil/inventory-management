@@ -275,27 +275,45 @@ useEffect(() => {
 
   const onDropdownEdit = async (e) => {
   let value = e.target.value;
-  setQuery(value); // you can keep this for display/debug
+  setQuery(value);
 
   if (value.length > 3) {
     setSearch(true);
     setLoading(true);
     setDropdown([]);
-    const response = await fetch("/api/search?query=" + value, { // <-- use value here
+
+    const response = await fetch("/api/search?query=" + value, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
         "auth-token": localStorage.getItem("token"),
       },
     });
-    let rjson = await response.json();
-    setDropdown(rjson.products);
+
+    const rjson = await response.json();
+
+    // ✅ Deduplicate by Product ID (code) and Asset Name (slug)
+    const unique = [];
+    const seenCodes = new Set();
+
+    for (const item of rjson.products) {
+      // Check if the item matches the search query
+      const matchesQuery = item.slug.toLowerCase().includes(value.toLowerCase()) || item.code.includes(value);
+      if (matchesQuery && !seenCodes.has(item.code)) {
+        seenCodes.add(item.code);
+        unique.push(item);
+      }
+    }
+
+    setDropdown(unique);
     setLoading(false);
   } else {
     setSearch(false);
     setDropdown([]);
   }
 };
+
+
 
   // ---------------DELETE FUNCTION----------------
   const handleDeleteProduct = async (id) => {
