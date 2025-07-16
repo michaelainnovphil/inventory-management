@@ -1003,7 +1003,7 @@ const pieChartData = {
       {showScrollTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-6 right-6 z-50 bg-primary hover:bg-secondary text-white px-4 py-2 rounded-full shadow-lg"
+          className="fixed bottom-6 right-6 z-50 bg-primary hover:bg-secondary text-white px-6 py-4 rounded-full shadow-lg"
         >
           ↑ Top
         </button>
