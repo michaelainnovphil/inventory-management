@@ -54,8 +54,8 @@ const [userRole, setUserRole] = useState(null);
   const router = useRouter();
   const productRefs = React.useRef({});
 
-const scrollToAndHighlight = (slug) => {
-  const row = productRefs.current[slug];
+const scrollToAndHighlight = (code) => {
+  const row = productRefs.current[code];
   if (row) {
     row.scrollIntoView({ behavior: "smooth", block: "center" });
     row.classList.add("bg-orange-300");
@@ -597,7 +597,7 @@ const pieChartData = {
     </div>
 
 
-        <div className="overflow-x-auto bg-white rounded-lg shadow-md p-4">
+        <div className="<overflow-x-auto bg-white rounded-lg shadow-md p-4">
 
           
            <table className="min-w-full table-auto border border-gray-200 rounded-xl text-sm md:text-base shadow">
@@ -645,7 +645,7 @@ const pieChartData = {
           </tr>
           {group.map((product) => (
             <tr
-              ref={(el) => (productRefs.current[product.slug] = el)}
+              ref={(el) => (productRefs.current[product.code] = el)}
               key={product._id || product.code}
               onClick={() => openProductModal(product)}
               className="even:bg-gray-50 hover:bg-blue-50 transition cursor-pointer"
