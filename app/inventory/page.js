@@ -552,30 +552,30 @@ const pieChartData = {
           </div>
         )}
     <div className="dropcontainer absolute z-40 w-11/12 md:w-1/2 bg-white border border-gray-200 shadow-lg rounded-lg mt-2 overflow-y-auto max-h-60">
+    {search && (dropdown.length > 0 ? (
+        dropdown.map((item) => (
+            <div
+                key={item.code} // Use Product ID as the key
+                onClick={() => {
+                    scrollToAndHighlight(item.code); // Highlight based on Product ID
+                    setSearch(false); // Close dropdown
+                }}
+                className="cursor-pointer px-4 py-2 border-b hover:bg-primary/10 transition-colors"
+            >
+                <div className="font-semibold text-gray-800 text-sm md:text-base">
+                    {item.slug} ({item.quantity} pcs) – ₱{item.price * item.quantity}
+                </div>
+                <div className="text-xs text-gray-500">
+                    ID: {item.code} | Issued To: {Array.isArray(item.issued) ? item.issued.join(", ") : item.issued || "N/A"}
+                </div>
+            </div>
+        ))
+    ) : (
+        <div>Not found.</div>
+    ))}
+</div>
 
-          {search &&
-            (dropdown.length > 0 ? (
-              dropdown.map((item) => {
-                return (
-                  <div
-            key={item.slug}
-            onClick={() => scrollToAndHighlight(item.slug)}
-    className="cursor-pointer px-4 py-2 border-b hover:bg-primary/10 transition-colors"
-          >
-    <div className="font-semibold text-gray-800 text-sm md:text-base">
-              {item.slug} ({item.quantity} pcs) – ₱{item.price * item.quantity}
-            </div>
-    <div className="text-xs text-gray-500">
-              ID: {item.code} | Issued To:{" "}
-              {Array.isArray(item.issued) ? item.issued.join(", ") : item.issued || "N/A"}
-            </div>
-          </div>
-                );
-              })
-            ) : (
-              <div> Not found.</div>
-            ))}
-        </div>
+
       </div>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-4 mb-4">
     <div className="flex items-center gap-2">
