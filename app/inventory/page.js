@@ -599,9 +599,10 @@ const pieChartData = {
 
 
         <div className="overflow-x-auto bg-white rounded-lg shadow-md p-4 w-full">
-    <table className="min-w-full table-auto border border-gray-200 rounded-lg text-sm md:text-base shadow">
-        <thead className="bg-primary text-white text-sm md:text-base">
-            <tr>
+           <table className="min-w-full table-auto border border-gray-200 rounded-xl rounded-lg text-sm md:text-base shadow">
+
+    <thead className="bg-primary text-white text-sm md:text-base">
+    <tr>
                 <th className="px-4 py-3 font-semibold text-center">Product ID</th>
                 <th className="px-4 py-3 font-semibold text-center">Asset Name</th>
                 <th className="px-4 py-3 font-semibold text-center">Serial Number</th>
@@ -615,126 +616,126 @@ const pieChartData = {
                 <th className="px-4 py-3 font-semibold text-center">Total Price</th>
                 <th className="px-4 py-3 font-semibold text-center">Delete</th>
             </tr>
-        </thead>
+    </thead>
 
-        <tbody className="divide-y divide-gray-100">
-            {groupByIssuedTo ? (
-                Object.entries(
-                    products
-                        .filter((product) =>
-                            selectedCategory ? product.category === selectedCategory : true
-                        )
-                        .reduce((acc, product) => {
-                            const issuedList = Array.isArray(product.issued)
-                                ? product.issued
-                                : [product.issued || "Unassigned"];
-                            issuedList.forEach((person) => {
-                                if (!acc[person]) acc[person] = [];
-                                acc[person].push(product);
-                            });
-                            return acc;
-                        }, {})
-                ).map(([issuedTo, group]) => (
-                    <React.Fragment key={issuedTo}>
-                        <tr className="bg-orange-500 text-white">
-                            <td colSpan="12" className="px-5 py-3 font-semibold text-center">
-                                {issuedTo}
-                            </td>
-                        </tr>
-                        {group.map((product) => (
-                            <tr
-                                ref={(el) => (productRefs.current[product.code] = el)}
-                                key={product._id || product.code}
-                                onClick={() => openProductModal(product)}
-                                className="even:bg-gray-50 hover:bg-blue-50 transition cursor-pointer"
-                            >
-                                <td className="px-5 py-3 text-center">{product.code || "—"}</td>
-                                <td className="px-5 py-3 text-center">{product.slug || "—"}</td>
-                                <td className="px-5 py-3 text-center">{product.serial || "—"}</td>
-                                <td className="px-5 py-3 text-center">{product.category || "—"}</td>
-                                <td className="px-5 py-3 text-center">{product.branch || "—"}</td>
-                                <td className="px-5 py-3 text-center">
-                                    {Array.isArray(product.issued)
-                                        ? product.issued.join(", ")
-                                        : product.issued || "—"}
-                                </td>
-                                <td className="px-5 py-3 text-center">{product.status || "—"}</td>
-                                <td className="px-5 py-3 text-center">{calculateAge(product.purchaseDate)}</td>
-                                <td className="px-5 py-3 text-center">{product.quantity || 0}</td>
-                                <td className="px-5 py-3 text-center">₱{product.price || 0}</td>
-                                <td className="px-5 py-3 text-center">
-                                    ₱{(product.price || 0) * (product.quantity || 0)}
-                                </td>
-                                <td className="px-5 py-3 text-center text-red-600 text-2xl">
-                                    <MdDelete
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setProductToDelete(product);
-                                            setShowDeleteModal(true);
-                                        }}
-                                        className="cursor-pointer"
-                                    />
-                                </td>
-                            </tr>
-                        ))}
-                    </React.Fragment>
-                ))
-            ) : (
-                products
-                    .filter((product) =>
-                        selectedCategory ? product.category === selectedCategory : true
-                    )
-                    .sort((a, b) => {
-                        const catA = a.category?.toLowerCase() || "";
-                        const catB = b.category?.toLowerCase() || "";
-                        const codeA = a.code?.toLowerCase() || "";
-                        const codeB = b.code?.toLowerCase() || "";
+    <tbody className="divide-y divide-gray-100">
+    {groupByIssuedTo ? (
+      Object.entries(
+        products
+          .filter((product) =>
+            selectedCategory ? product.category === selectedCategory : true
+          )
+          .reduce((acc, product) => {
+            const issuedList = Array.isArray(product.issued)
+              ? product.issued
+              : [product.issued || "Unassigned"];
+            issuedList.forEach((person) => {
+              if (!acc[person]) acc[person] = [];
+              acc[person].push(product);
+            });
+            return acc;
+          }, {})
+      ).map(([issuedTo, group]) => (
+        <React.Fragment key={issuedTo}>
+          <tr className="bg-orange-500 text-white">
+            <td colSpan="12" className="px-5 py-3 font-semibold">
+              {issuedTo}
+            </td>
+          </tr>
+          {group.map((product) => (
+            <tr
+              ref={(el) => (productRefs.current[product.code] = el)}
+              key={product._id || product.code}
+              onClick={() => openProductModal(product)}
+              className="even:bg-gray-50 hover:bg-blue-50 transition cursor-pointer"
+            >
+              <td className="px-5 py-3 text-center">{product.code || "—"}</td>
+              <td className="px-5 py-3 text-center">{product.slug || "—"}</td>
+              <td className="px-5 py-3 text-center">{product.serial || "—"}</td>
+              <td className="px-5 py-3 text-center">{product.category || "—"}</td>
+              <td className="px-5 py-3 text-center">{product.branch || "—"}</td>
+              <td className="px-5 py-3 text-center">
+                {Array.isArray(product.issued)
+                  ? product.issued.join(", ")
+                  : product.issued || "—"}
+              </td>
+              <td className="px-5 py-3 text-center">{product.status || "—"}</td>
+              <td className="px-5 py-3 text-center">{calculateAge(product.purchaseDate)}</td>
+              <td className="px-5 py-3 text-center">{product.quantity || 0}</td>
+              <td className="px-5 py-3 text-center">₱{product.price || 0}</td>
+              <td className="px-5 py-3 text-center">
+                ₱{(product.price || 0) * (product.quantity || 0)}
+              </td>
+              <td className="px-5 py-3 text-center text-red-600 text-2xl">
+                <MdDelete
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setProductToDelete(product);
+                    setShowDeleteModal(true);
+                  }}
+                  className="cursor-pointer"
+                />
+              </td>
+            </tr>
+          ))}
+        </React.Fragment>
+      ))
+    ) : (
+      products
+        .filter((product) =>
+          selectedCategory ? product.category === selectedCategory : true
+        )
+        .sort((a, b) => {
+          const catA = a.category?.toLowerCase() || "";
+          const catB = b.category?.toLowerCase() || "";
+          const codeA = a.code?.toLowerCase() || "";
+          const codeB = b.code?.toLowerCase() || "";
 
-                        if (catA < catB) return -1;
-                        if (catA > catB) return 1;
-                        return codeA.localeCompare(codeB);
-                    })
-                    .map((product) => (
-                        <tr
-                            ref={(el) => (productRefs.current[product.code] = el)}
-                            key={product._id || product.code}
-                            onClick={() => openProductModal(product)}
-                            className="hover:bg-blue-50 transition cursor-pointer"
-                        >
-                            <td className="px-5 py-3 text-center">{product.code || "—"}</td>
-                            <td className="px-5 py-3 text-center">{product.slug || "—"}</td>
-                            <td className="px-5 py-3 text-center">{product.serial || "—"}</td>
-                            <td className="px-5 py-3 text-center">{product.category || "—"}</td>
-                            <td className="px-5 py-3 text-center">{product.branch || "—"}</td>
-                            <td className="px-5 py-3 text-center">
-                                {Array.isArray(product.issued)
-                                    ? product.issued.join(", ")
-                                    : product.issued || "—"}
-                            </td>
-                            <td className="px-5 py-3 text-center">{product.status || "—"}</td>
-                            <td className="px-5 py-3 text-center">{calculateAge(product.purchaseDate)}</td>
-                            <td className="px-5 py-3 text-center">{product.quantity || 0}</td>
-                            <td className="px-5 py-3 text-center">₱{product.price || 0}</td>
-                            <td className="px-5 py-3 text-center">
-                                ₱{(product.price || 0) * (product.quantity || 0)}
-                            </td>
-                            <td className="px-5 py-3 text-center text-red-600 text-2xl">
-                                <MdDelete
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setProductToDelete(product);
-                                        setShowDeleteModal(true);
-                                    }}
-                                    className="cursor-pointer"
-                                />
-                            </td>
-                        </tr>
-                    ))
-            )}
-        </tbody>
+          if (catA < catB) return -1;
+          if (catA > catB) return 1;
+          return codeA.localeCompare(codeB);
+        })
+        .map((product) => (
+          <tr
+            ref={(el) => (productRefs.current[product.code] = el)}
+            key={product._id || product.code}
+            onClick={() => openProductModal(product)}
+            className="hover:bg-blue-50 transition cursor-pointer"
+          >
+            <td className="px-4 py-2 text-center">{product.code || "—"}</td>
+            <td className="px-4 py-2 text-center">{product.slug || "—"}</td>
+            <td className="px-4 py-2 text-center">{product.serial || "—"}</td>
+            <td className="px-4 py-2 text-center">{product.category || "—"}</td>
+            <td className="px-4 py-2 text-center">{product.branch || "—"}</td>
+            <td className="px-4 py-2 text-center">
+              {Array.isArray(product.issued)
+                ? product.issued.join(", ")
+                : product.issued || "—"}
+            </td>
+            <td className="px-4 py-2 text-center">{product.status || "—"}</td>
+            <td className="px-4 py-2 text-center">{calculateAge(product.purchaseDate)}</td>
+            <td className="px-4 py-2 text-center">{product.quantity || 0}</td>
+            <td className="px-4 py-2 text-center">₱{product.price || 0}</td>
+            <td className="px-4 py-2 text-center">
+              ₱{(product.price || 0) * (product.quantity || 0)}
+            </td>
+            <td className="px-4 py-2 text-center text-red-600 text-2xl">
+              <MdDelete
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setProductToDelete(product);
+                  setShowDeleteModal(true);
+                }}
+                className="cursor-pointer"
+              />
+            </td>
+          </tr>
+        ))
+    )}
+    </tbody>
     </table>
-</div>
 
+          </div>
 
         </div>
       </div>
