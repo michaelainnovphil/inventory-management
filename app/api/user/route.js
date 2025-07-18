@@ -11,6 +11,8 @@ export async function GET(request) {
     const requestHeaders = new Headers(request.headers);
     const token = requestHeaders.get("auth-token");
     const data = verify(token, process.env.JWT_SECRET);
+    const role = isAdminRequest ? req.body.role : 'user';
+
 
     request.user = data.user;
     let id = data.user.id;

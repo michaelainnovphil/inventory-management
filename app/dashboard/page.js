@@ -77,6 +77,12 @@ const scrollToAndHighlight = (slug) => {
 };
 
 useEffect(() => {
+    if (session?.user?.role) {
+      console.log("User role:", session.user.role); // ✅ logs 'admin' or 'user'
+    }
+  }, [session]);
+
+useEffect(() => {
   const user = getUserFromToken();
   console.log("Decoded user:", user);
   if (user?.user?.role) {
