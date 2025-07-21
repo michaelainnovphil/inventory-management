@@ -967,7 +967,7 @@ const pieChartData = {
           Close
         </button>
 
-        {/* {userRole === "admin" && ( */}
+        {userRole === "admin" && (
         <button
           style={{ backgroundColor: '#0a1f8f' }}
           className="hover:bg-blue-800 text-white font-medium px-4 py-2 rounded-lg transition"
@@ -994,7 +994,7 @@ const pieChartData = {
         >
           Edit
         </button>
-        {/* )} */}
+        )}
       </div>
     </div>
   </div>

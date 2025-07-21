@@ -592,7 +592,7 @@ const pieChartData = {
       
 
 {/* Floating Button */}
-{/* {userRole === "admin" && ( */}
+{userRole === "admin" && (
 <button
   onClick={() => setShowForm(true)}
   className="fixed bottom-6 right-6 bg-primary text-white w-14 h-14 flex items-center justify-center rounded-full shadow-2xl hover:bg-secondary transition duration-300 ease-in-out"
@@ -600,7 +600,7 @@ const pieChartData = {
 >
   <Plus className="w-6 h-6" />
 </button>
-{/* )} */}
+)} 
 
 
        {showForm && (
