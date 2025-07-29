@@ -7,7 +7,8 @@ import { toast } from "react-toastify";
 import React from "react";
 import * as XLSX from "xlsx-js-style";
 import { saveAs } from "file-saver";
-import { getUserFromToken } from "@/utils/auth";
+import { getUserFromToken } from "@/utils/getUserFromToken";
+
 
 import {
   Chart as ChartJS,
@@ -66,11 +67,15 @@ const scrollToAndHighlight = (code) => {
   }
 };
 useEffect(() => {
-  const user = getUserFromToken();
-  if (user) {
-    setUserRole(user.role);
-  }
-}, []);
+    const decoded = getUserFromToken();
+    if (decoded && decoded.user && decoded.user.role) {
+      setUserRole(decoded.user.role);
+      console.log("✅ Current Role:", decoded.user.role);
+    } else {
+      console.warn("⚠️ No role found in token.");
+    }
+  }, []);
+
 
   useEffect(() => {
     const handleScroll = () => {

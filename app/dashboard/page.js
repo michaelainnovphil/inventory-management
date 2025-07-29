@@ -1,4 +1,5 @@
 "use client";
+
 import Header from "@/components/Header";
 import { useState, useEffect } from "react";
 import { MdDelete } from "react-icons/md";
@@ -9,7 +10,8 @@ import React from "react";
 import * as XLSX from "xlsx-js-style";
 import { saveAs } from "file-saver";
 import { Plus } from "lucide-react";
-import { getUserFromToken } from "@/utils/auth";
+import { getUserFromToken } from "@/utils/getUserFromToken";
+import jwt_decode from "jwt-decode";
 
 
 
@@ -54,12 +56,9 @@ export default function Dashboard() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [highlightedRowId, setHighlightedRowId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-const [productToDelete, setProductToDelete] = useState(null);
-const [showForm, setShowForm] = useState(false);
-const [userRole, setUserRole] = useState(null); 
-
-
-
+  const [productToDelete, setProductToDelete] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   const router = useRouter();
   const productRefs = React.useRef({});
@@ -76,15 +75,17 @@ const scrollToAndHighlight = (slug) => {
   }
 };
 
+
+
 useEffect(() => {
-  const user = getUserFromToken();
-  console.log("Decoded user:", user);
-  if (user?.user?.role) {
-    setUserRole(user.user.role);
-  } else {
-    setUserRole(null);
-  }
-}, []);
+    const decoded = getUserFromToken();
+    if (decoded && decoded.user && decoded.user.role) {
+      setUserRole(decoded.user.role);
+      console.log("✅ Current Role:", decoded.user.role);
+    } else {
+      console.warn("⚠️ No role found in token.");
+    }
+  }, []);
 
 
 
@@ -254,6 +255,7 @@ const statusBarChartOptions = {
 
   const addProduct = async (e) => {
   e.preventDefault();
+  console.log("🧪 Submitting:", productForm);
 
   const formToSubmit = {
     ...productForm,
@@ -266,17 +268,18 @@ const statusBarChartOptions = {
     const url = "/api/product";
     const method = isEditing ? "PUT" : "POST";
     const body = isEditing
-      ? JSON.stringify({ ...formToSubmit, _id: editingProductId })
-      : JSON.stringify(formToSubmit);
+  ? { ...formToSubmit, _id: editingProductId }
+  : formToSubmit;
 
-    const response = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        "auth-token": localStorage.getItem("token"),
-      },
-      body,
-    });
+  const response = await fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "auth-token": localStorage.getItem("token"),
+    },
+    body: JSON.stringify(body),  // ✅ stringified once
+  });
+
 
     const result = await response.json();
 
@@ -581,9 +584,12 @@ const pieChartData = {
     </div>
 
     {/* Centered total */}
-    <div className="mt-8 text-center font-bold text-xl text-gray-800">
-      📦 Overall Total Inventory: <span className="text-primary">{totalInventory}</span>
-    </div>
+   
+  <div className="mt-8 text-center font-bold text-xl text-gray-800">
+    📦 Overall Total Inventory: <span className="text-primary">{totalInventory}</span><br />
+    Current Role: <span className="text-primary">{userRole}</span>
+  </div>
+
 
 
   </div>
