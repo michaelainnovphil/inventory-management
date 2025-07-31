@@ -6,6 +6,8 @@ export default function RequestListModal({ onClose }) {
   const [requests, setRequests] = useState([]);
   const [filter, setFilter] = useState("pending");
   const [loading, setLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
 
   const fetchRequests = async () => {
     try {
@@ -35,23 +37,8 @@ export default function RequestListModal({ onClose }) {
   };
 
   const handleDelete = async (requestId) => {
-    if (!confirm("Are you sure you want to delete this request?")) return;
-    try {
-      const res = await fetch("/api/request", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "auth-token": localStorage.getItem("token"),
-        },
-        body: JSON.stringify({ requestId }),
-      });
-      const data = await res.json();
-      if (data.success) fetchRequests();
-      else alert("Delete failed: " + data.message);
-    } catch (error) {
-      console.error("❌ DELETE /api/request error:", error.message);
-      alert("Failed to delete request: " + error.message);
-    }
+    setDeleteId(requestId);
+    setShowDeleteModal(true);
   };
 
   useEffect(() => {
@@ -103,9 +90,10 @@ export default function RequestListModal({ onClose }) {
             {filteredRequests.map((req) => (
               <div
                 key={req._id}
-                className="bg-gray-50 rounded-lg border border-gray-200 p-4"
+                className="bg-gray-50 rounded-lg border border-gray-200 p-4 flex justify-between items-start"
               >
-                <div>
+                {/* Left side: Request info */}
+                <div className="space-y-1">
                   <p>
                     <strong>Item:</strong> {req.productId?.slug || "N/A"}
                   </p>
@@ -131,34 +119,83 @@ export default function RequestListModal({ onClose }) {
                   </p>
                 </div>
 
-                {req.status === "pending" && (
-                  <div className="flex gap-3 mt-3">
-                    <button
-                      onClick={() => handleAction(req._id, "approved")}
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded-md text-sm"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleAction(req._id, "declined")}
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded-md text-sm"
-                    >
-                      Decline
-                    </button>
-                  </div>
-                )}
-
-                <button
-                  onClick={() => handleDelete(req._id)}
-                  className="block mt-2 text-sm text-red-500 hover:underline"
-                >
-                  Delete
-                </button>
+                {/* Right side: Actions */}
+                <div className="flex flex-col items-end gap-2">
+                  {req.status === "pending" && (
+                    <>
+                      <button
+                        onClick={() => handleAction(req._id, "approved")}
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded-md text-sm"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleAction(req._id, "declined")}
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded-md text-sm"
+                      >
+                        Decline
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => handleDelete(req._id)}
+                    className="text-sm text-red-500 hover:underline mt-2"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Delete confirmation modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-xl shadow-xl max-w-sm w-full">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Are you sure you want to delete this request?
+            </h3>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteId(null);
+                }}
+                className="px-4 py-2 rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch("/api/request", {
+                      method: "DELETE",
+                      headers: {
+                        "Content-Type": "application/json",
+                        "auth-token": localStorage.getItem("token"),
+                      },
+                      body: JSON.stringify({ requestId: deleteId }),
+                    });
+                    const data = await res.json();
+                    if (data.success) fetchRequests();
+                    else alert("Delete failed: " + data.message);
+                  } catch (error) {
+                    alert("Failed to delete request: " + error.message);
+                  } finally {
+                    setShowDeleteModal(false);
+                    setDeleteId(null);
+                  }
+                }}
+                className="px-4 py-2 rounded-md text-white bg-red-600 hover:bg-red-700"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
