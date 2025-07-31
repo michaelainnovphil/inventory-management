@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import RequestList from "../requestlist/page";
+import { getUserFromToken } from "@/utils/getUserFromToken";
 
 
 export default function RequestForm() {
@@ -14,6 +15,8 @@ export default function RequestForm() {
   const [modalMessage, setModalMessage] = useState("");
   const [showRequestList, setShowRequestList] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+  
 
 
 
@@ -55,6 +58,16 @@ export default function RequestForm() {
     }
     setShowFeedbackModal(true);
   };
+
+  useEffect(() => {
+      const decoded = getUserFromToken();
+      if (decoded && decoded.user && decoded.user.role) {
+        setUserRole(decoded.user.role);
+        console.log("✅ Current Role:", decoded.user.role);
+      } else {
+        console.warn("⚠️ No role found in token.");
+      }
+    }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
