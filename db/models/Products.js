@@ -57,3 +57,4 @@ ProductsSchema.plugin(mongooseUniqueValidator, {
 const Product = models.product || model("product", ProductsSchema);
 
 export default Product;
+  
