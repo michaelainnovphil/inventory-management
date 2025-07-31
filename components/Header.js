@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
+
 const Header = () => {
   const router = useRouter();
   const [token, setToken] = useState("");
@@ -49,6 +50,13 @@ const Header = () => {
         <nav className="flex items-center gap-6">
           {token && (
             <>
+            
+            <Link
+                href="/request"
+                className="text-gray-700 hover:text-blue-600 font-medium transition"
+              >
+                Request
+              </Link>
               <Link
                 href="/dashboard"
                 className="text-gray-700 hover:text-blue-600 font-medium transition"

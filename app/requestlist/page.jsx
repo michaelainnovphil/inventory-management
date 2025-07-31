@@ -1,69 +1,164 @@
+// components/RequestListModal.jsx
 "use client";
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
 
-export default function RequestList() {
+export default function RequestListModal({ onClose }) {
   const [requests, setRequests] = useState([]);
+  const [filter, setFilter] = useState("pending");
+  const [loading, setLoading] = useState(true);
 
   const fetchRequests = async () => {
-  try {
-    const res = await fetch("/api/request", {
-      headers: { "auth-token": localStorage.getItem("token") },
-    });
+    try {
+      const res = await fetch("/api/request", {
+        headers: { "auth-token": localStorage.getItem("token") },
+      });
+      const data = await res.json();
+      setRequests(data.requests || []);
+    } catch (error) {
+      console.error("❌ GET /api/request error:", error.message);
+      alert("Failed to fetch requests: " + error.message);
+    }
+  };
 
-    const data = await res.json();
-    setRequests(data.requests || []);
-  } catch (error) {
-    console.error("❌ GET /api/request error stack:", error.stack);
-    console.error("❌ GET /api/request error message:", error.message);
-    alert("Failed to fetch requests: " + error.message);
-  }
-};
-
-
-
-  const handleAction = async (id, action) => {
+  const handleAction = async (requestId, status) => {
     const res = await fetch("/api/request", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         "auth-token": localStorage.getItem("token"),
       },
-      body: JSON.stringify({ id, action }), // action: 'approve' or 'decline'
+      body: JSON.stringify({ requestId, status }),
     });
-
     const data = await res.json();
     if (data.success) fetchRequests();
     else alert("Action failed: " + data.message);
   };
 
+  const handleDelete = async (requestId) => {
+    if (!confirm("Are you sure you want to delete this request?")) return;
+    try {
+      const res = await fetch("/api/request", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "auth-token": localStorage.getItem("token"),
+        },
+        body: JSON.stringify({ requestId }),
+      });
+      const data = await res.json();
+      if (data.success) fetchRequests();
+      else alert("Delete failed: " + data.message);
+    } catch (error) {
+      console.error("❌ DELETE /api/request error:", error.message);
+      alert("Failed to delete request: " + error.message);
+    }
+  };
+
   useEffect(() => {
-    fetchRequests();
+    fetchRequests().finally(() => setLoading(false));
   }, []);
 
-  return (
-    <div className="p-4">
-      <Header />
-      <h2 className="text-lg font-semibold mb-4">Item Requests</h2>
-      {requests.map(req => (
-        <div key={req._id} className="p-2 border rounded mb-2">
-          <p><strong>Item:</strong> {req.productId?.slug || "N/A"}</p>
-          <p><strong>Requested by:</strong> {req.user?.name}</p>
-          <p><strong>Quantity:</strong> {req.quantity}</p>
-          <p><strong>Status:</strong> {req.status}</p>
+  const filteredRequests = requests.filter((req) => {
+    if (filter === "pending") return req.status === "pending";
+    if (filter === "decided") return req.status === "approved" || req.status === "declined";
+    return true;
+  });
 
-          {req.status === "pending" && (
-            <div className="flex gap-2 mt-2">
-              <button onClick={() => handleAction(req._id, "approve")} className="bg-green-500 text-white px-2 py-1 rounded">
-                Approve
-              </button>
-              <button onClick={() => handleAction(req._id, "decline")} className="bg-red-500 text-white px-2 py-1 rounded">
-                Decline
-              </button>
-            </div>
-          )}
+  return (
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex justify-center items-start pt-20 px-4">
+      <div className="bg-white rounded-2xl shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 relative">
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-4 text-gray-500 hover:text-black text-xl"
+        >
+          ×
+        </button>
+
+        <h2 className="text-2xl font-bold mb-4 text-gray-800">Item Requests</h2>
+
+        <div className="flex gap-4 mb-6">
+          {["all", "pending", "decided"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilter(type)}
+              className={`px-4 py-1 rounded-full border font-medium text-sm ${
+                filter === type
+                  ? "bg-blue-900 text-white border-blue-900"
+                  : "bg-white text-gray-800 border-gray-300 hover:bg-gray-100"
+              }`}
+            >
+              {type === "all" && "All"}
+              {type === "pending" && "Pending"}
+              {type === "decided" && "Approved/Declined"}
+            </button>
+          ))}
         </div>
-      ))}
+
+        {loading ? (
+          <p className="text-center text-gray-500">Loading...</p>
+        ) : filteredRequests.length === 0 ? (
+          <p className="text-center text-gray-500">No requests to show.</p>
+        ) : (
+          <div className="grid gap-4">
+            {filteredRequests.map((req) => (
+              <div
+                key={req._id}
+                className="bg-gray-50 rounded-lg border border-gray-200 p-4"
+              >
+                <div>
+                  <p>
+                    <strong>Item:</strong> {req.productId?.slug || "N/A"}
+                  </p>
+                  <p>
+                    <strong>Requested by:</strong> {req.user?.name || "N/A"}
+                  </p>
+                  <p>
+                    <strong>Quantity:</strong> {req.quantity}
+                  </p>
+                  <p>
+                    <strong>Status:</strong>{" "}
+                    <span
+                      className={`ml-1 px-2 py-1 text-xs font-semibold rounded-full ${
+                        req.status === "approved"
+                          ? "bg-green-100 text-green-700"
+                          : req.status === "declined"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {req.status?.toUpperCase()}
+                    </span>
+                  </p>
+                </div>
+
+                {req.status === "pending" && (
+                  <div className="flex gap-3 mt-3">
+                    <button
+                      onClick={() => handleAction(req._id, "approved")}
+                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded-md text-sm"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => handleAction(req._id, "declined")}
+                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded-md text-sm"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => handleDelete(req._id)}
+                  className="block mt-2 text-sm text-red-500 hover:underline"
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

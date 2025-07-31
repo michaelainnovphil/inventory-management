@@ -51,6 +51,7 @@ export async function POST(request) {
       category,
       productId,
       quantity,
+      status: "pending",
     });
 
     return NextResponse.json({ success: true, request: newRequest });
@@ -131,18 +132,10 @@ export async function DELETE(request) {
   try {
     await connectToMongo();
 
-    let requestId;
-    try {
-      const requestBody = await request.json();
-      requestId = requestBody;
-    } catch (jsonError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: jsonError instanceof Object && jsonError.message ? jsonError.message : jsonError,
-        },
-        { status: 400 }
-      );
+    const { requestId } = await request.json();
+
+    if (!requestId) {
+      return NextResponse.json({ success: false, message: "Request ID missing" }, { status: 400 });
     }
 
     const existing = await Request.findById(requestId);
