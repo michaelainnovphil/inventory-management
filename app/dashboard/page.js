@@ -526,6 +526,7 @@ const pieChartData = {
         "#1aa6b7", // Green
         "#a78bfa", // Purple
         "#f472b6", // Pink
+        "#4d7fd9",
       ],
       borderWidth: 1,
     },
