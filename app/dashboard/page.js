@@ -669,6 +669,7 @@ const pieChartData = {
             <option value="Office Supplies">Office Supplies</option>
             <option value="AHA Training">AHA Training Equipment</option>
             <option value="Appliances">Appliances</option>
+            <option value="Office Equipment">Office Equipment</option>
             <option value="Reviewer Handbook">Reviewer Handbook</option>
             <option value="Freebies/Souvenirs">Freebies/Souvenirs</option>
             <option value="Others">Others</option>
